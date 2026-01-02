@@ -14,13 +14,15 @@ import {
   ChevronDown,
   Home,
   Plus,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
+import ManageListings from "@/components/admin/ManageListings";
 
-type TabType = "applications" | "internships" | "contacts";
+type TabType = "applications" | "internships" | "contacts" | "manage";
 
 interface JobApplication {
   id: string;
@@ -80,7 +82,7 @@ const statusColors: Record<string, string> = {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<TabType>("applications");
+  const [activeTab, setActiveTab] = useState<TabType>("manage");
   const [isLoading, setIsLoading] = useState(true);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [internshipEnquiries, setInternshipEnquiries] = useState<InternshipEnquiry[]>([]);
@@ -96,6 +98,7 @@ const AdminDashboard = () => {
     if (activeTab === "applications") fetchApplications();
     else if (activeTab === "internships") fetchInternshipEnquiries();
     else if (activeTab === "contacts") fetchContacts();
+    else if (activeTab === "manage") setIsLoading(false);
   }, [activeTab]);
 
   const checkAuth = async () => {
@@ -241,6 +244,7 @@ const AdminDashboard = () => {
   };
 
   const tabs = [
+    { id: "manage" as TabType, label: "Manage Listings", icon: Settings, count: 0 },
     { id: "applications" as TabType, label: "Job Applications", icon: Briefcase, count: applications.length },
     { id: "internships" as TabType, label: "Internship Enquiries", icon: GraduationCap, count: internshipEnquiries.length },
     { id: "contacts" as TabType, label: "Contact Messages", icon: Mail, count: contacts.filter(c => !c.is_read).length },
@@ -302,6 +306,9 @@ const AdminDashboard = () => {
           ))}
         </div>
 
+        {activeTab === "manage" ? (
+          <ManageListings />
+        ) : (
         <div className="grid lg:grid-cols-3 gap-6">
           {/* List */}
           <div className="lg:col-span-1">
@@ -570,6 +577,7 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

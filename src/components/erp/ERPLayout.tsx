@@ -6,12 +6,15 @@ import { useToast } from "@/hooks/use-toast";
 import ERPSidebar from "./ERPSidebar";
 import { Button } from "@/components/ui/button";
 
+type AppRole = "admin" | "employee" | "intern";
+
 interface ERPLayoutProps {
   children: ReactNode;
-  requiredRole: "admin" | "employee" | "intern";
+  requiredRole?: AppRole;
+  allowedRoles?: AppRole[];
 }
 
-const ERPLayout = ({ children, requiredRole }: ERPLayoutProps) => {
+const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +55,12 @@ const ERPLayout = ({ children, requiredRole }: ERPLayoutProps) => {
       return;
     }
 
-    const role = roles[0].role as "admin" | "employee" | "intern";
+    const role = roles[0].role as AppRole;
     
-    // Check if user has required role
-    if (role !== requiredRole && requiredRole !== role) {
+    // Check if user has required role (support both single role and array of roles)
+    const rolesAllowed = allowedRoles || (requiredRole ? [requiredRole] : []);
+    
+    if (rolesAllowed.length > 0 && !rolesAllowed.includes(role)) {
       // Redirect to correct dashboard
       if (role === "admin") navigate("/admin/dashboard");
       else if (role === "employee") navigate("/employee/dashboard");

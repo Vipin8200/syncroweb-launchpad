@@ -34,6 +34,7 @@ const adminNav: NavItem[] = [
   { label: "Interns", icon: GraduationCap, path: "/admin/interns" },
   { label: "Add Intern", icon: UserPlus, path: "/admin/add-intern" },
   { label: "Approvals", icon: CheckSquare, path: "/admin/approvals" },
+  { label: "Internship Programs", icon: Briefcase, path: "/admin/internship-programs" },
   { label: "Job Postings", icon: Briefcase, path: "/admin/jobs" },
   { label: "Applications", icon: ClipboardList, path: "/admin/applications" },
   { label: "Internship Enquiries", icon: Mail, path: "/admin/internship-enquiries" },

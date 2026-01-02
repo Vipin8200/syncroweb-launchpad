@@ -20,6 +20,7 @@ import AdminEmployees from "./pages/erp/AdminEmployees";
 import AdminApprovals from "./pages/erp/AdminApprovals";
 import AdminInterns from "./pages/erp/AdminInterns";
 import AdminAddIntern from "./pages/erp/AdminAddIntern";
+import AdminInternshipPrograms from "./pages/erp/AdminInternshipPrograms";
 import AdminJobPostings from "./pages/erp/AdminJobPostings";
 import AdminApplications from "./pages/erp/AdminApplications";
 import AdminMessages from "./pages/erp/AdminMessages";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/admin/approvals" element={<AdminApprovals />} />
             <Route path="/admin/interns" element={<AdminInterns />} />
             <Route path="/admin/add-intern" element={<AdminAddIntern />} />
+            <Route path="/admin/internship-programs" element={<AdminInternshipPrograms />} />
             <Route path="/admin/jobs" element={<AdminJobPostings />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/admin/messages" element={<AdminMessages />} />

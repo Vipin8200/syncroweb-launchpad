@@ -1,8 +1,8 @@
 import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Menu, X } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import ERPSidebar from "./ERPSidebar";
 import { Button } from "@/components/ui/button";
 
@@ -16,76 +16,47 @@ interface ERPLayoutProps {
 
 const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<"admin" | "employee" | "intern" | null>(null);
-  const [userName, setUserName] = useState("");
+  const { session, userRole, userName, isLoading, signOut } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Check role access on mount and when auth state changes
   useEffect(() => {
-    checkAuth();
-    fetchNotifications();
-  }, []);
-
-  const checkAuth = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    if (isLoading) return;
 
     if (!session) {
-      navigate("/admin");
+      navigate("/admin", { replace: true });
       return;
     }
 
-    // Get user role
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id);
-
-    if (!roles || roles.length === 0) {
-      await supabase.auth.signOut();
-      navigate("/admin");
-      toast({
-        title: "Access Denied",
-        description: "You don't have access to this system.",
-        variant: "destructive",
-      });
+    if (!userRole) {
+      signOut();
+      navigate("/admin", { replace: true });
       return;
     }
 
-    const role = roles[0].role as AppRole;
-    
-    // Check if user has required role (support both single role and array of roles)
+    // Check if user has required role
     const rolesAllowed = allowedRoles || (requiredRole ? [requiredRole] : []);
     
-    if (rolesAllowed.length > 0 && !rolesAllowed.includes(role)) {
+    if (rolesAllowed.length > 0 && !rolesAllowed.includes(userRole)) {
       // Redirect to correct dashboard
-      if (role === "admin") navigate("/admin/dashboard");
-      else if (role === "employee") navigate("/employee/dashboard");
-      else if (role === "intern") navigate("/intern/dashboard");
+      if (userRole === "admin") navigate("/admin/dashboard", { replace: true });
+      else if (userRole === "employee") navigate("/employee/dashboard", { replace: true });
+      else if (userRole === "intern") navigate("/intern/dashboard", { replace: true });
       return;
     }
 
-    setUserRole(role);
+    fetchNotifications();
+  }, [isLoading, session, userRole]);
 
-    // Get user name from profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", session.user.id)
-      .maybeSingle();
-
-    setUserName(profile?.full_name || session.user.email || "User");
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    // Refetch notifications when navigating between pages
+    if (session && userRole) {
+      fetchNotifications();
+    }
+  }, [session, userRole]);
 
   const fetchNotifications = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
     if (session) {
       const { count } = await supabase
         .from("notifications")
@@ -98,10 +69,11 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate("/admin");
   };
 
+  // Show loading only on initial auth load, not on page navigations
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -113,7 +85,8 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
     );
   }
 
-  if (!userRole) return null;
+  // If not authenticated or no role, don't render (useEffect will redirect)
+  if (!session || !userRole) return null;
 
   return (
     <div className="min-h-screen bg-background flex">

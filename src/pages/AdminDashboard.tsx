@@ -176,7 +176,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const updateApplicationStatus = async (id: string, status: string) => {
+  const updateApplicationStatus = async (id: string, status: "pending" | "reviewed" | "shortlisted" | "rejected" | "hired") => {
     try {
       const { error } = await supabase
         .from("job_applications")
@@ -193,7 +193,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const updateEnquiryStatus = async (id: string, status: string) => {
+  const updateEnquiryStatus = async (id: string, status: "pending" | "contacted" | "enrolled" | "closed") => {
     try {
       const { error } = await supabase
         .from("internship_enquiries")

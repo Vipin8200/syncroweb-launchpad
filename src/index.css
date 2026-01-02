@@ -4,52 +4,60 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 230 25% 15%;
+    /* Light Theme - Professional Enterprise Look */
+    --background: 210 20% 98%;
+    --background-alt: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 230 25% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 230 80% 55%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 243 75% 51%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 230 25% 15%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 230 15% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 185 85% 50%;
-    --accent-foreground: 230 25% 10%;
+    --accent: 187 92% 43%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 20% 90%;
-    --input: 230 20% 90%;
-    --ring: 230 80% 55%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 243 75% 59%;
 
     --radius: 0.75rem;
 
-    /* Custom brand colors */
-    --indigo: 235 70% 50%;
-    --indigo-light: 235 70% 65%;
-    --cyan: 185 85% 50%;
-    --cyan-light: 185 85% 65%;
-    --purple: 270 70% 60%;
-    --purple-light: 270 70% 75%;
+    /* Brand Colors */
+    --indigo: 243 75% 59%;
+    --indigo-light: 243 75% 70%;
+    --indigo-dark: 243 75% 51%;
+    --cyan: 187 92% 43%;
+    --cyan-light: 187 92% 55%;
 
-    /* Glassmorphism */
-    --glass-bg: 0 0% 100% / 0.1;
-    --glass-border: 0 0% 100% / 0.2;
-    --glass-shadow: 230 50% 10% / 0.1;
+    /* Glassmorphism - Light Mode */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 220 13% 91%;
+    --glass-shadow: 0 0% 0% / 0.06;
+
+    /* Text hierarchy */
+    --heading: 222 47% 11%;
+    --body: 215 25% 35%;
+    --helper: 215 16% 47%;
   }
 
   .dark {
     --background: 230 30% 6%;
+    --background-alt: 230 30% 9%;
     --foreground: 210 40% 98%;
 
     --card: 230 30% 9%;
@@ -58,8 +66,9 @@
     --popover: 230 30% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 230 80% 60%;
+    --primary: 243 75% 65%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 243 75% 55%;
 
     --secondary: 230 25% 15%;
     --secondary-foreground: 210 40% 98%;
@@ -67,7 +76,7 @@
     --muted: 230 25% 15%;
     --muted-foreground: 230 15% 60%;
 
-    --accent: 185 85% 55%;
+    --accent: 187 92% 50%;
     --accent-foreground: 230 30% 6%;
 
     --destructive: 0 62% 50%;
@@ -75,20 +84,21 @@
 
     --border: 230 25% 18%;
     --input: 230 25% 18%;
-    --ring: 230 80% 60%;
+    --ring: 243 75% 65%;
 
-    /* Custom brand colors - dark mode */
-    --indigo: 235 75% 55%;
-    --indigo-light: 235 75% 70%;
-    --cyan: 185 90% 55%;
-    --cyan-light: 185 90% 70%;
-    --purple: 270 75% 65%;
-    --purple-light: 270 75% 80%;
+    --indigo: 243 75% 60%;
+    --indigo-light: 243 75% 75%;
+    --indigo-dark: 243 75% 50%;
+    --cyan: 187 92% 55%;
+    --cyan-light: 187 92% 70%;
 
-    /* Glassmorphism - dark mode */
     --glass-bg: 230 30% 15% / 0.4;
     --glass-border: 230 30% 30% / 0.3;
     --glass-shadow: 230 50% 5% / 0.3;
+
+    --heading: 210 40% 98%;
+    --body: 230 15% 70%;
+    --helper: 230 15% 55%;
   }
 }
 
@@ -108,27 +118,31 @@
 
 @layer components {
   .glass-card {
-    @apply bg-glass backdrop-blur-xl border border-glass-border rounded-2xl shadow-glass;
+    @apply bg-card border border-border rounded-2xl;
+    box-shadow: 0px 10px 30px hsl(var(--glass-shadow));
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary via-accent to-purple bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary to-cyan bg-clip-text text-transparent;
   }
 
   .gradient-border {
-    @apply relative before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-r before:from-primary before:via-accent before:to-purple before:-z-10;
+    @apply relative before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-r before:from-primary before:to-cyan before:-z-10;
   }
 
   .glow-primary {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.3), 0 0 80px hsl(var(--primary) / 0.15);
+    box-shadow: 0 4px 20px hsl(var(--primary) / 0.25);
   }
 
   .glow-accent {
-    box-shadow: 0 0 40px hsl(var(--accent) / 0.3), 0 0 80px hsl(var(--accent) / 0.15);
+    box-shadow: 0 4px 20px hsl(var(--accent) / 0.25);
   }
 
   .hover-lift {
-    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
+    @apply transition-all duration-300 hover:-translate-y-1;
+    &:hover {
+      box-shadow: 0px 15px 40px hsl(var(--glass-shadow));
+    }
   }
 
   .section-padding {
@@ -137,6 +151,22 @@
 
   .container-custom {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .text-heading {
+    @apply text-foreground;
+  }
+
+  .text-body {
+    color: hsl(var(--body));
+  }
+
+  .text-helper {
+    color: hsl(var(--helper));
+  }
+
+  .bg-alt {
+    background: hsl(var(--background-alt));
   }
 }
 
@@ -150,7 +180,7 @@
   }
 
   .shadow-glass {
-    box-shadow: 0 8px 32px hsl(var(--glass-shadow));
+    box-shadow: 0px 10px 30px hsl(var(--glass-shadow));
   }
 
   .animate-float {
@@ -180,7 +210,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-15px);
   }
 }
 
@@ -191,7 +221,7 @@
   }
   50% {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.03);
   }
 }
 

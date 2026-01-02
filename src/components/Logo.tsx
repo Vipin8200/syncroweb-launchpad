@@ -33,13 +33,12 @@ const Logo = ({ className = "", size = "md", showText = true }: LogoProps) => {
       >
         <defs>
           <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(235 75% 55%)" />
-            <stop offset="50%" stopColor="hsl(185 90% 55%)" />
-            <stop offset="100%" stopColor="hsl(270 75% 65%)" />
+            <stop offset="0%" stopColor="#4F46E5" />
+            <stop offset="100%" stopColor="#06B6D4" />
           </linearGradient>
           <linearGradient id="logoGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="hsl(185 90% 55%)" />
-            <stop offset="100%" stopColor="hsl(235 75% 55%)" />
+            <stop offset="0%" stopColor="#06B6D4" />
+            <stop offset="100%" stopColor="#4F46E5" />
           </linearGradient>
         </defs>
         

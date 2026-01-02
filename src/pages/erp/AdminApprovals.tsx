@@ -77,70 +77,34 @@ const AdminApprovals = () => {
       const companyEmail = generateCompanyEmail(intern.full_name);
       const tempPassword = generateTempPassword();
 
-      // Create auth user with company email
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: companyEmail,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/intern/dashboard`,
-          data: {
-            full_name: intern.full_name,
-          },
-        },
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user");
-
-      // Add intern role
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: "intern",
-      });
-
-      if (roleError) throw roleError;
-
       // Get current user for approved_by
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // Update intern record
-      const { error: updateError } = await supabase
-        .from("interns")
-        .update({
-          status: "active",
-          user_id: authData.user.id,
-          company_email: companyEmail,
-          temp_password: tempPassword,
-          approved_by: session?.user.id,
-          start_date: new Date().toISOString().split("T")[0],
-        })
-        .eq("id", intern.id);
-
-      if (updateError) throw updateError;
-
-      // Send notification email
-      try {
-        await supabase.functions.invoke("send-notification", {
-          body: {
-            type: "intern_approved",
-            recipientEmail: intern.personal_email,
-            recipientName: intern.full_name,
-            data: {
-              companyEmail,
-              tempPassword,
-              domain: intern.domain,
-            },
-          },
-        });
-      } catch (emailError) {
-        console.error("Email notification failed:", emailError);
+      if (!session?.user.id) {
+        throw new Error("You must be logged in to approve interns");
       }
+
+      // Use edge function to create user (avoids auto-login issue)
+      const { data, error } = await supabase.functions.invoke("create-intern-user", {
+        body: {
+          internId: intern.id,
+          fullName: intern.full_name,
+          personalEmail: intern.personal_email,
+          companyEmail,
+          tempPassword,
+          domain: intern.domain,
+          approvedBy: session.user.id,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Intern Approved",
-        description: `${intern.full_name} has been approved and credentials sent.`,
+        description: `${intern.full_name} has been approved. Credentials: ${companyEmail}`,
       });
 
       setSelectedIntern(null);

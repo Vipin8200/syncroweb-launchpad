@@ -41,6 +41,111 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          join_date: string
+          phone: string | null
+          position: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          join_date?: string
+          phone?: string | null
+          position: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          join_date?: string
+          phone?: string | null
+          position?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interns: {
+        Row: {
+          added_by: string
+          approved_by: string | null
+          college_name: string | null
+          company_email: string | null
+          course: string | null
+          created_at: string
+          domain: string
+          duration: string
+          end_date: string | null
+          full_name: string
+          id: string
+          personal_email: string
+          phone: string
+          start_date: string | null
+          status: string
+          temp_password: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          added_by: string
+          approved_by?: string | null
+          college_name?: string | null
+          company_email?: string | null
+          course?: string | null
+          created_at?: string
+          domain: string
+          duration: string
+          end_date?: string | null
+          full_name: string
+          id?: string
+          personal_email: string
+          phone: string
+          start_date?: string | null
+          status?: string
+          temp_password?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          added_by?: string
+          approved_by?: string | null
+          college_name?: string | null
+          company_email?: string | null
+          course?: string | null
+          created_at?: string
+          domain?: string
+          duration?: string
+          end_date?: string | null
+          full_name?: string
+          id?: string
+          personal_email?: string
+          phone?: string
+          start_date?: string | null
+          status?: string
+          temp_password?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       internship_enquiries: {
         Row: {
           college_name: string
@@ -240,6 +345,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -263,6 +401,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "interns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -299,7 +487,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "employee" | "intern"
       application_status:
         | "pending"
         | "reviewed"
@@ -435,7 +623,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "employee", "intern"],
       application_status: [
         "pending",
         "reviewed",

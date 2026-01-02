@@ -15,14 +15,25 @@ import { toast } from "sonner";
 import { Plus, Briefcase, MapPin, Clock, DollarSign, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
+type JobType = "full-time" | "part-time" | "contract" | "remote";
+
 const AdminJobPostings = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    department: string;
+    location: string;
+    job_type: JobType;
+    salary_range: string;
+    description: string;
+    requirements: string;
+    responsibilities: string;
+  }>({
     title: "",
     department: "",
     location: "",
-    job_type: "full-time" as const,
+    job_type: "full-time",
     salary_range: "",
     description: "",
     requirements: "",

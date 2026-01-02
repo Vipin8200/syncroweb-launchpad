@@ -35,6 +35,7 @@ const adminNav: NavItem[] = [
   { label: "Approvals", icon: CheckSquare, path: "/admin/approvals" },
   { label: "Job Postings", icon: Briefcase, path: "/admin/jobs" },
   { label: "Applications", icon: ClipboardList, path: "/admin/applications" },
+  { label: "Internship Enquiries", icon: UserPlus, path: "/admin/internship-enquiries" },
   { label: "Messages", icon: Mail, path: "/admin/messages" },
 ];
 

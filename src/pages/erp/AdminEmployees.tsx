@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserPlus, Mail, Phone, Building, Briefcase } from "lucide-react";
+import { UserPlus, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,12 @@ interface Employee {
 const AdminEmployees = () => {
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,6 +54,35 @@ const AdminEmployees = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  useEffect(() => {
+    filterEmployees();
+  }, [employees, searchQuery, departmentFilter, statusFilter]);
+
+  const filterEmployees = () => {
+    let filtered = [...employees];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (emp) =>
+          emp.full_name.toLowerCase().includes(query) ||
+          emp.email.toLowerCase().includes(query) ||
+          emp.position.toLowerCase().includes(query)
+      );
+    }
+
+    if (departmentFilter !== "all") {
+      filtered = filtered.filter((emp) => emp.department === departmentFilter);
+    }
+
+    if (statusFilter !== "all") {
+      const isActive = statusFilter === "active";
+      filtered = filtered.filter((emp) => emp.is_active === isActive);
+    }
+
+    setFilteredEmployees(filtered);
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -147,7 +180,45 @@ const AdminEmployees = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Employees</h1>
             <p className="text-muted-foreground">Manage your team members</p>
+        </div>
+          
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or position..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
+          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              <SelectItem value="Engineering">Engineering</SelectItem>
+              <SelectItem value="Design">Design</SelectItem>
+              <SelectItem value="Marketing">Marketing</SelectItem>
+              <SelectItem value="Sales">Sales</SelectItem>
+              <SelectItem value="HR">HR</SelectItem>
+              <SelectItem value="Operations">Operations</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-32">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -233,9 +304,11 @@ const AdminEmployees = () => {
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : employees.length === 0 ? (
+          ) : filteredEmployees.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              No employees found. Add your first employee.
+              {employees.length === 0 
+                ? "No employees found. Add your first employee."
+                : "No employees match your filters."}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -263,7 +336,7 @@ const AdminEmployees = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map((employee) => (
+                  {filteredEmployees.map((employee) => (
                     <tr key={employee.id} className="border-t border-border">
                       <td className="p-4">
                         <p className="font-medium text-foreground">{employee.full_name}</p>

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Mail } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, Copy, Check } from "lucide-react";
 
 // Generate a random password
 const generatePassword = () => {
@@ -43,7 +43,8 @@ const AdminAddIntern = () => {
     college_name: "",
     course: "",
   });
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState<"email" | "password" | null>(null);
 
   const { data: internshipPrograms } = useQuery({
     queryKey: ["internship-programs"],
@@ -66,56 +67,29 @@ const AdminAddIntern = () => {
       const companyEmail = generateCompanyEmail(data.full_name);
       const tempPassword = generatePassword();
 
-      // Create auth user for intern
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: companyEmail,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/intern/dashboard`,
-          data: {
-            full_name: data.full_name,
-          },
-        },
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create intern account");
-
-      // Add intern role
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: "intern",
-      });
-
-      if (roleError) {
-        console.error("Role error:", roleError);
-        // Continue anyway as the user is created
-      }
-
-      // Add intern record
-      const { error: internError } = await supabase.from("interns").insert({
+      // First add intern record without user_id (we'll update later when they login)
+      const { data: internData, error: internError } = await supabase.from("interns").insert({
         full_name: data.full_name,
         personal_email: data.personal_email,
         phone: data.phone,
         domain: data.domain,
         duration: data.duration,
-        college_name: data.college_name,
-        course: data.course,
+        college_name: data.college_name || null,
+        course: data.course || null,
         added_by: userData.user.id,
         approved_by: userData.user.id,
         status: "approved",
         start_date: new Date().toISOString().split("T")[0],
-        user_id: authData.user.id,
         company_email: companyEmail,
         temp_password: tempPassword,
-      });
+      }).select().single();
 
       if (internError) throw internError;
 
       // Send email with credentials
-      setIsSendingEmail(true);
+      console.log("Sending email to:", data.personal_email);
       try {
-        const { error: emailError } = await supabase.functions.invoke("send-notification", {
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-notification", {
           body: {
             type: "intern_approved",
             recipientEmail: data.personal_email,
@@ -128,27 +102,27 @@ const AdminAddIntern = () => {
           },
         });
 
+        console.log("Email result:", emailResult, "Error:", emailError);
+
         if (emailError) {
           console.error("Email error:", emailError);
-          toast.warning("Intern added but email failed to send. Credentials: " + companyEmail + " / " + tempPassword);
+          toast.warning("Intern added but email failed. Please share credentials manually.");
         } else {
           toast.success("Credentials sent to " + data.personal_email);
         }
       } catch (emailErr) {
         console.error("Email send error:", emailErr);
-        toast.warning("Intern added. Email failed. Credentials: " + companyEmail + " / " + tempPassword);
+        toast.warning("Intern added. Email may have failed. Check below for credentials.");
       }
-      setIsSendingEmail(false);
 
-      return { companyEmail, tempPassword };
+      return { companyEmail, tempPassword, internId: internData.id };
     },
     onSuccess: (result) => {
-      toast.success(`Intern added! Login: ${result.companyEmail}`);
+      setCreatedCredentials({ email: result.companyEmail, password: result.tempPassword });
+      toast.success("Intern added successfully!");
       queryClient.invalidateQueries({ queryKey: ["interns"] });
-      navigate("/admin/interns");
     },
     onError: (error) => {
-      setIsSendingEmail(false);
       toast.error("Failed to add intern: " + error.message);
     },
   });
@@ -157,6 +131,88 @@ const AdminAddIntern = () => {
     e.preventDefault();
     addInternMutation.mutate(formData);
   };
+
+  const copyToClipboard = (text: string, type: "email" | "password") => {
+    navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleAddAnother = () => {
+    setCreatedCredentials(null);
+    setFormData({
+      full_name: "",
+      personal_email: "",
+      phone: "",
+      domain: "",
+      duration: "",
+      college_name: "",
+      course: "",
+    });
+  };
+
+  if (createdCredentials) {
+    return (
+      <ERPLayout requiredRole="admin">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/interns")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-green-600">Intern Added Successfully!</h1>
+              <p className="text-muted-foreground">Share these credentials with the intern</p>
+            </div>
+          </div>
+
+          <Card className="max-w-md">
+            <CardHeader>
+              <CardTitle>Login Credentials</CardTitle>
+              <CardDescription>
+                Email sent to {formData.personal_email}. Copy these for backup:
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Company Email</Label>
+                <div className="flex gap-2">
+                  <Input value={createdCredentials.email} readOnly className="font-mono" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(createdCredentials.email, "email")}
+                  >
+                    {copied === "email" ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Temporary Password</Label>
+                <div className="flex gap-2">
+                  <Input value={createdCredentials.password} readOnly className="font-mono" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(createdCredentials.password, "password")}
+                  >
+                    {copied === "password" ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleAddAnother} className="flex-1">
+                  Add Another Intern
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/admin/interns")} className="flex-1">
+                  View All Interns
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </ERPLayout>
+    );
+  }
 
   return (
     <ERPLayout requiredRole="admin">
@@ -229,6 +285,7 @@ const AdminAddIntern = () => {
                   <Select
                     value={formData.domain}
                     onValueChange={(value) => setFormData({ ...formData, domain: value })}
+                    required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select domain" />
@@ -252,6 +309,7 @@ const AdminAddIntern = () => {
                   <Select
                     value={formData.duration}
                     onValueChange={(value) => setFormData({ ...formData, duration: value })}
+                    required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select duration" />
@@ -288,8 +346,8 @@ const AdminAddIntern = () => {
                 <Button type="button" variant="outline" onClick={() => navigate(-1)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={addInternMutation.isPending || isSendingEmail}>
-                  {addInternMutation.isPending || isSendingEmail ? "Adding & Sending Email..." : "Add Intern & Send Credentials"}
+                <Button type="submit" disabled={addInternMutation.isPending}>
+                  {addInternMutation.isPending ? "Adding Intern..." : "Add Intern & Send Credentials"}
                 </Button>
               </div>
             </form>

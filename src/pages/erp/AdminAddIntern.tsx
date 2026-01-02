@@ -67,7 +67,7 @@ const AdminAddIntern = () => {
       const companyEmail = generateCompanyEmail(data.full_name);
       const tempPassword = generatePassword();
 
-      // First add intern record without user_id (we'll update later when they login)
+      // First add intern record with pending status
       const { data: internData, error: internError } = await supabase.from("interns").insert({
         full_name: data.full_name,
         personal_email: data.personal_email,
@@ -77,43 +77,26 @@ const AdminAddIntern = () => {
         college_name: data.college_name || null,
         course: data.course || null,
         added_by: userData.user.id,
-        approved_by: userData.user.id,
-        status: "approved",
-        start_date: new Date().toISOString().split("T")[0],
-        company_email: companyEmail,
-        temp_password: tempPassword,
+        status: "pending_approval",
       }).select().single();
 
       if (internError) throw internError;
 
-      // Send email with credentials
-      console.log("Sending email to:", data.personal_email);
-      try {
-        const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-notification", {
-          body: {
-            type: "intern_approved",
-            recipientEmail: data.personal_email,
-            recipientName: data.full_name,
-            data: {
-              companyEmail,
-              tempPassword,
-              domain: data.domain,
-            },
-          },
-        });
+      // Use edge function to create user and update intern (admin auto-approves)
+      const { data: result, error } = await supabase.functions.invoke("create-intern-user", {
+        body: {
+          internId: internData.id,
+          fullName: data.full_name,
+          personalEmail: data.personal_email,
+          companyEmail,
+          tempPassword,
+          domain: data.domain,
+          approvedBy: userData.user.id,
+        },
+      });
 
-        console.log("Email result:", emailResult, "Error:", emailError);
-
-        if (emailError) {
-          console.error("Email error:", emailError);
-          toast.warning("Intern added but email failed. Please share credentials manually.");
-        } else {
-          toast.success("Credentials sent to " + data.personal_email);
-        }
-      } catch (emailErr) {
-        console.error("Email send error:", emailErr);
-        toast.warning("Intern added. Email may have failed. Check below for credentials.");
-      }
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
 
       return { companyEmail, tempPassword, internId: internData.id };
     },

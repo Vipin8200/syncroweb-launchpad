@@ -114,7 +114,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} SyncroWeb Solutions LLP. All rights reserved.
+            © {currentYear} SyncroWeb Technologies LLP. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Built with ❤️ in India

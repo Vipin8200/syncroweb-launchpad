@@ -152,7 +152,7 @@ const Logo = ({ className = "", size = "md", showText = true }: LogoProps) => {
             Syncro<span className="gradient-text">Web</span>
           </span>
           <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-            Solutions
+            Technologies LLP
           </span>
         </div>
       )}

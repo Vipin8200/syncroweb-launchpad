@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, Briefcase, GraduationCap, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import { Button } from "./ui/button";
@@ -13,9 +13,15 @@ const navLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
+const joinUsLinks = [
+  { label: "Careers", href: "/careers", icon: Briefcase, description: "Explore job opportunities" },
+  { label: "Internship", href: "/internship", icon: GraduationCap, description: "Programs for students" },
+];
+
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isJoinUsOpen, setIsJoinUsOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -26,6 +32,8 @@ const Navigation = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isJoinUsActive = location.pathname === "/careers" || location.pathname === "/internship";
 
   return (
     <motion.header
@@ -64,9 +72,74 @@ const Navigation = () => {
                 />
               </Link>
             ))}
+
+            {/* Join Us Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setIsJoinUsOpen(true)}
+              onMouseLeave={() => setIsJoinUsOpen(false)}
+            >
+              <button
+                className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                  isJoinUsActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Join Us
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isJoinUsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {isJoinUsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2"
+                  >
+                    <div className="bg-card border border-border rounded-xl shadow-lg p-2 min-w-[220px]">
+                      {joinUsLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          to={link.href}
+                          className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
+                            location.pathname === link.href
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-secondary"
+                          }`}
+                        >
+                          <link.icon className="w-5 h-5 mt-0.5 text-primary" />
+                          <div>
+                            <p className="font-medium text-foreground">{link.label}</p>
+                            <p className="text-xs text-muted-foreground">{link.description}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Link to="/admin">
+                <Settings className="w-4 h-4 mr-1" />
+                Admin
+              </Link>
+            </Button>
             <Button
               asChild
               className="bg-primary hover:bg-primary-hover transition-colors glow-primary"
@@ -116,14 +189,53 @@ const Navigation = () => {
                   </Link>
                 </motion.div>
               ))}
-              <Button
-                asChild
-                className="w-full bg-primary hover:bg-primary-hover"
-              >
-                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
-                  Get a Quote
-                </Link>
-              </Button>
+
+              {/* Mobile Join Us Links */}
+              <div className="border-t border-border pt-4">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Join Us</p>
+                {joinUsLinks.map((link, index) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (navLinks.length + index) * 0.05 }}
+                  >
+                    <Link
+                      to={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-2 text-base font-medium transition-colors py-2 ${
+                        location.pathname === link.href
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <link.icon className="w-4 h-4" />
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin Panel
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  className="w-full bg-primary hover:bg-primary-hover"
+                >
+                  <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
+                    Get a Quote
+                  </Link>
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

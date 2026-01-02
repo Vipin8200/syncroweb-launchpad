@@ -110,7 +110,7 @@ const Index = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-border hover:bg-secondary px-8 py-6 text-lg group"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-6 text-lg group"
               >
                 <Link to="/services">
                   <Play className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />

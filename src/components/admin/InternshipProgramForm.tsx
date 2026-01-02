@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+interface InternshipProgramData {
+  id: string;
+  title: string;
+  department: string;
+  duration: string;
+  stipend: string | null;
+  description: string;
+  requirements: string[];
+  what_you_learn: string[];
+}
+
 interface InternshipProgramFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  editData?: InternshipProgramData | null;
 }
 
-const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormProps) => {
+const InternshipProgramForm = ({ onSuccess, onCancel, editData }: InternshipProgramFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,6 +35,20 @@ const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormPro
     requirements: [""],
     what_you_learn: [""],
   });
+
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        title: editData.title,
+        department: editData.department,
+        duration: editData.duration,
+        stipend: editData.stipend || "",
+        description: editData.description,
+        requirements: editData.requirements.length > 0 ? editData.requirements : [""],
+        what_you_learn: editData.what_you_learn.length > 0 ? editData.what_you_learn : [""],
+      });
+    }
+  }, [editData]);
 
   const handleArrayInput = (
     field: "requirements" | "what_you_learn",
@@ -48,7 +74,7 @@ const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormPro
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("internship_programs").insert({
+      const payload = {
         title: formData.title,
         department: formData.department,
         duration: formData.duration,
@@ -56,18 +82,30 @@ const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormPro
         description: formData.description,
         requirements: formData.requirements.filter((r) => r.trim()),
         what_you_learn: formData.what_you_learn.filter((w) => w.trim()),
-        is_active: true,
-      });
+      };
 
-      if (error) throw error;
+      if (editData) {
+        const { error } = await supabase
+          .from("internship_programs")
+          .update(payload)
+          .eq("id", editData.id);
+        if (error) throw error;
+        toast({ title: "Internship program updated successfully!" });
+      } else {
+        const { error } = await supabase.from("internship_programs").insert({
+          ...payload,
+          is_active: true,
+        });
+        if (error) throw error;
+        toast({ title: "Internship program created successfully!" });
+      }
 
-      toast({ title: "Internship program created successfully!" });
       onSuccess();
     } catch (error) {
-      console.error("Error creating internship:", error);
+      console.error("Error saving internship:", error);
       toast({
         title: "Error",
-        description: "Failed to create internship. Please try again.",
+        description: `Failed to ${editData ? "update" : "create"} internship. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -75,10 +113,14 @@ const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormPro
     }
   };
 
+  const isEditing = !!editData;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-heading">Create Internship Program</h2>
+        <h2 className="text-xl font-bold text-heading">
+          {isEditing ? "Edit Internship Program" : "Create Internship Program"}
+        </h2>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           <X className="w-4 h-4" />
         </Button>
@@ -195,7 +237,7 @@ const InternshipProgramForm = ({ onSuccess, onCancel }: InternshipProgramFormPro
 
       <div className="flex gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Program"}
+          {isSubmitting ? (isEditing ? "Saving..." : "Creating...") : (isEditing ? "Save Changes" : "Create Program")}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

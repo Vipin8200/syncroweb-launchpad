@@ -11,7 +11,11 @@ interface JobPosting {
   title: string;
   department: string;
   location: string;
-  job_type: string;
+  job_type: "full-time" | "part-time" | "contract" | "remote";
+  salary_range: string | null;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
   is_active: boolean;
   created_at: string;
 }
@@ -21,6 +25,10 @@ interface InternshipProgram {
   title: string;
   department: string;
   duration: string;
+  stipend: string | null;
+  description: string;
+  requirements: string[];
+  what_you_learn: string[];
   is_active: boolean;
   created_at: string;
 }
@@ -35,6 +43,8 @@ const ManageListings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showJobForm, setShowJobForm] = useState(false);
   const [showInternshipForm, setShowInternshipForm] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
+  const [editingInternship, setEditingInternship] = useState<InternshipProgram | null>(null);
 
   useEffect(() => {
     fetchListings();
@@ -46,14 +56,14 @@ const ManageListings = () => {
       if (activeType === "jobs") {
         const { data, error } = await supabase
           .from("job_postings")
-          .select("id, title, department, location, job_type, is_active, created_at")
+          .select("*")
           .order("created_at", { ascending: false });
         if (error) throw error;
         setJobs(data || []);
       } else {
         const { data, error } = await supabase
           .from("internship_programs")
-          .select("id, title, department, duration, is_active, created_at")
+          .select("*")
           .order("created_at", { ascending: false });
         if (error) throw error;
         setInternships(data || []);
@@ -125,15 +135,36 @@ const ManageListings = () => {
     });
   };
 
+  const handleEditJob = (job: JobPosting) => {
+    setEditingJob(job);
+    setShowJobForm(true);
+  };
+
+  const handleEditInternship = (internship: InternshipProgram) => {
+    setEditingInternship(internship);
+    setShowInternshipForm(true);
+  };
+
+  const handleCloseJobForm = () => {
+    setShowJobForm(false);
+    setEditingJob(null);
+  };
+
+  const handleCloseInternshipForm = () => {
+    setShowInternshipForm(false);
+    setEditingInternship(null);
+  };
+
   if (showJobForm) {
     return (
       <div className="glass-card p-6">
         <JobPostingForm
+          editData={editingJob}
           onSuccess={() => {
-            setShowJobForm(false);
+            handleCloseJobForm();
             fetchListings();
           }}
-          onCancel={() => setShowJobForm(false)}
+          onCancel={handleCloseJobForm}
         />
       </div>
     );
@@ -143,11 +174,12 @@ const ManageListings = () => {
     return (
       <div className="glass-card p-6">
         <InternshipProgramForm
+          editData={editingInternship}
           onSuccess={() => {
-            setShowInternshipForm(false);
+            handleCloseInternshipForm();
             fetchListings();
           }}
-          onCancel={() => setShowInternshipForm(false)}
+          onCancel={handleCloseInternshipForm}
         />
       </div>
     );
@@ -218,6 +250,14 @@ const ManageListings = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleEditJob(job)}
+                    title="Edit"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => toggleJobStatus(job.id, job.is_active)}
                     title={job.is_active ? "Hide" : "Show"}
                   >
@@ -256,6 +296,14 @@ const ManageListings = () => {
                   <p className="text-xs text-muted-foreground mt-1">{formatDate(intern.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEditInternship(intern)}
+                    title="Edit"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+interface JobPostingData {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  job_type: "full-time" | "part-time" | "contract" | "remote";
+  salary_range: string | null;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
+}
+
 interface JobPostingFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  editData?: JobPostingData | null;
 }
 
-const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
+const JobPostingForm = ({ onSuccess, onCancel, editData }: JobPostingFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,6 +37,21 @@ const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
     requirements: [""],
     responsibilities: [""],
   });
+
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        title: editData.title,
+        department: editData.department,
+        location: editData.location,
+        job_type: editData.job_type,
+        salary_range: editData.salary_range || "",
+        description: editData.description,
+        requirements: editData.requirements.length > 0 ? editData.requirements : [""],
+        responsibilities: editData.responsibilities.length > 0 ? editData.responsibilities : [""],
+      });
+    }
+  }, [editData]);
 
   const handleArrayInput = (
     field: "requirements" | "responsibilities",
@@ -49,7 +77,7 @@ const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("job_postings").insert({
+      const payload = {
         title: formData.title,
         department: formData.department,
         location: formData.location,
@@ -58,18 +86,30 @@ const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
         description: formData.description,
         requirements: formData.requirements.filter((r) => r.trim()),
         responsibilities: formData.responsibilities.filter((r) => r.trim()),
-        is_active: true,
-      });
+      };
 
-      if (error) throw error;
+      if (editData) {
+        const { error } = await supabase
+          .from("job_postings")
+          .update(payload)
+          .eq("id", editData.id);
+        if (error) throw error;
+        toast({ title: "Job updated successfully!" });
+      } else {
+        const { error } = await supabase.from("job_postings").insert({
+          ...payload,
+          is_active: true,
+        });
+        if (error) throw error;
+        toast({ title: "Job posted successfully!" });
+      }
 
-      toast({ title: "Job posted successfully!" });
       onSuccess();
     } catch (error) {
-      console.error("Error posting job:", error);
+      console.error("Error saving job:", error);
       toast({
         title: "Error",
-        description: "Failed to post job. Please try again.",
+        description: `Failed to ${editData ? "update" : "post"} job. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -77,10 +117,14 @@ const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
     }
   };
 
+  const isEditing = !!editData;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-heading">Post New Job</h2>
+        <h2 className="text-xl font-bold text-heading">
+          {isEditing ? "Edit Job Posting" : "Post New Job"}
+        </h2>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           <X className="w-4 h-4" />
         </Button>
@@ -215,7 +259,7 @@ const JobPostingForm = ({ onSuccess, onCancel }: JobPostingFormProps) => {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Posting..." : "Post Job"}
+          {isSubmitting ? (isEditing ? "Saving..." : "Posting...") : (isEditing ? "Save Changes" : "Post Job")}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

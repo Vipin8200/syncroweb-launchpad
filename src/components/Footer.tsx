@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import Logo from "./Logo";
+import { Link } from "react-router-dom";
 import { Github, Linkedin, Twitter, Instagram } from "lucide-react";
+import Logo from "./Logo";
 
 const socialLinks = [
   { icon: Twitter, href: "#", label: "Twitter" },
@@ -11,16 +12,15 @@ const socialLinks = [
 
 const footerLinks = {
   services: [
-    { label: "Web Development", href: "#services" },
-    { label: "Mobile Apps", href: "#services" },
-    { label: "UI/UX Design", href: "#services" },
-    { label: "Custom Software", href: "#services" },
+    { label: "Web Development", href: "/services" },
+    { label: "Mobile Apps", href: "/services" },
+    { label: "UI/UX Design", href: "/services" },
+    { label: "Custom Software", href: "/services" },
   ],
   company: [
-    { label: "About Us", href: "#about" },
-    { label: "Our Process", href: "#process" },
-    { label: "Tech Stack", href: "#tech-stack" },
-    { label: "Contact", href: "#contact" },
+    { label: "About Us", href: "/about" },
+    { label: "Our Process", href: "/process" },
+    { label: "Contact", href: "/contact" },
   ],
   legal: [
     { label: "Privacy Policy", href: "#" },
@@ -33,13 +33,13 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-card/50">
+    <footer className="border-t border-border bg-card">
       <div className="container-custom py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-2">
             <Logo className="mb-4" />
-            <p className="text-muted-foreground text-sm max-w-sm mb-6">
+            <p className="text-body text-sm max-w-sm mb-6">
               Transforming businesses through innovative digital solutions. 
               We build scalable, high-performance applications that drive growth.
             </p>
@@ -51,9 +51,9 @@ const Footer = () => {
                   aria-label={social.label}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                  className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/10 transition-colors group"
                 >
-                  <social.icon className="w-5 h-5 text-muted-foreground hover:text-accent transition-colors" />
+                  <social.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </motion.a>
               ))}
             </div>
@@ -65,12 +65,12 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.services.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                  <Link
+                    to={link.href}
+                    className="text-sm text-body hover:text-primary transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -82,12 +82,12 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                  <Link
+                    to={link.href}
+                    className="text-sm text-body hover:text-primary transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -101,7 +101,7 @@ const Footer = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                    className="text-sm text-body hover:text-primary transition-colors"
                   >
                     {link.label}
                   </a>

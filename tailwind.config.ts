@@ -25,6 +25,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -53,19 +54,11 @@ export default {
         indigo: {
           DEFAULT: "hsl(var(--indigo))",
           light: "hsl(var(--indigo-light))",
+          dark: "hsl(var(--indigo-dark))",
         },
         cyan: {
           DEFAULT: "hsl(var(--cyan))",
           light: "hsl(var(--cyan-light))",
-        },
-        purple: {
-          DEFAULT: "hsl(var(--purple))",
-          light: "hsl(var(--purple-light))",
-        },
-        glass: {
-          bg: "hsl(var(--glass-bg))",
-          border: "hsl(var(--glass-border))",
-          shadow: "hsl(var(--glass-shadow))",
         },
       },
       borderRadius: {

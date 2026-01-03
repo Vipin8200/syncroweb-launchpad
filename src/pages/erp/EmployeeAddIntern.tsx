@@ -54,11 +54,28 @@ const EmployeeAddIntern = () => {
       });
 
       if (error) throw error;
+
+      // Notify all admins about the new intern submission
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((admin) => ({
+          user_id: admin.user_id,
+          title: "New Intern Pending Approval",
+          message: `${data.full_name} has been submitted for ${data.domain} internship and requires your approval.`,
+          type: "warning",
+        }));
+
+        await supabase.from("notifications").insert(notifications);
+      }
     },
     onSuccess: () => {
       toast.success("Intern added successfully! Pending admin approval.");
       queryClient.invalidateQueries({ queryKey: ["interns"] });
-      navigate("/employee/dashboard");
+      navigate("/erp/employee/dashboard");
     },
     onError: (error) => {
       toast.error("Failed to add intern: " + error.message);

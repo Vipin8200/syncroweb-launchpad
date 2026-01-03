@@ -44,14 +44,34 @@ const InternTasks = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, title }: { id: string; status: string; title: string }) => {
       const updates: Record<string, unknown> = { status };
       if (status === "completed") {
         updates.completed_at = new Date().toISOString();
       }
 
+      const { data: task, error: fetchError } = await supabase
+        .from("tasks")
+        .select("assigned_by")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase.from("tasks").update(updates).eq("id", id);
       if (error) throw error;
+
+      // Notify the assigner about the status update
+      if (task?.assigned_by) {
+        const statusText = status === "completed" ? "completed" : "started working on";
+        await supabase.from("notifications").insert({
+          user_id: task.assigned_by,
+          title: status === "completed" ? "Task Completed" : "Task Started",
+          message: `${internData?.full_name || "An intern"} has ${statusText} the task: ${title}`,
+          type: status === "completed" ? "success" : "info",
+          related_id: id,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["intern-tasks"] });
@@ -106,7 +126,7 @@ const InternTasks = () => {
           {task.status === "pending" && (
             <Button
               size="sm"
-              onClick={() => updateStatusMutation.mutate({ id: task.id, status: "in_progress" })}
+              onClick={() => updateStatusMutation.mutate({ id: task.id, status: "in_progress", title: task.title })}
             >
               Start Task
             </Button>
@@ -114,7 +134,7 @@ const InternTasks = () => {
           {task.status === "in_progress" && (
             <Button
               size="sm"
-              onClick={() => updateStatusMutation.mutate({ id: task.id, status: "completed" })}
+              onClick={() => updateStatusMutation.mutate({ id: task.id, status: "completed", title: task.title })}
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Mark Complete

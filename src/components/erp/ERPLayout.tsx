@@ -1,11 +1,12 @@
 import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ERPSidebar from "./ERPSidebar";
 import { Button } from "@/components/ui/button";
-
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { toast } from "sonner";
 type AppRole = "admin" | "employee" | "intern";
 
 interface ERPLayoutProps {
@@ -19,7 +20,10 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
   const { session, userRole, userName, isLoading, signOut } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | null>(null);
 
+  // Set up realtime notifications
+  const { requestPermission } = useRealtimeNotifications(session?.user?.id || null);
   // Check role access on mount and when auth state changes
   useEffect(() => {
     if (isLoading) return;
@@ -53,6 +57,11 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
     // Refetch notifications when navigating between pages
     if (session && userRole) {
       fetchNotifications();
+      
+      // Check notification permission status
+      if ("Notification" in window) {
+        setNotificationPermission(Notification.permission);
+      }
     }
   }, [session, userRole]);
 
@@ -129,6 +138,23 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
           </div>
 
           <div className="flex items-center gap-4">
+            {notificationPermission !== "granted" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  const granted = await requestPermission();
+                  if (granted) {
+                    toast.success("Desktop notifications enabled!");
+                    setNotificationPermission("granted");
+                  }
+                }}
+                className="text-xs hidden sm:flex"
+              >
+                <BellRing className="w-4 h-4 mr-1" />
+                Enable Notifications
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

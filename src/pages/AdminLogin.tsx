@@ -14,45 +14,65 @@ const AdminLogin = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    full_name: "",
   });
+
+  const redirectBasedOnRole = async (userId: string) => {
+    // Check user role and redirect accordingly
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (!roles || roles.length === 0) {
+      await supabase.auth.signOut();
+      toast({
+        title: "Access Denied",
+        description: "You don't have access to this portal.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const userRole = roles[0].role;
+
+    if (userRole === "admin") {
+      navigate("/erp/admin/dashboard");
+    } else if (userRole === "employee") {
+      navigate("/erp/employee/dashboard");
+    } else if (userRole === "intern") {
+      navigate("/erp/intern/dashboard");
+    } else {
+      await supabase.auth.signOut();
+      toast({
+        title: "Access Denied",
+        description: "Invalid role assigned.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session?.user) {
-          // Check if user has admin role
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .eq("role", "admin")
-            .maybeSingle();
-
-          if (roles) {
-            navigate("/admin/dashboard");
-          }
+          // Defer the role check to avoid deadlock
+          setTimeout(() => {
+            redirectBasedOnRole(session.user.id);
+          }, 0);
         }
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-
-        if (roles) {
-          navigate("/admin/dashboard");
-        }
+        redirectBasedOnRole(session.user.id);
       }
     });
 
@@ -64,62 +84,26 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/admin/dashboard`,
-            data: {
-              full_name: formData.full_name,
-            },
-          },
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
+      const redirected = await redirectBasedOnRole(data.user.id);
+
+      if (redirected) {
         toast({
-          title: "Account created!",
-          description: "Please contact an administrator to grant you admin access.",
+          title: "Welcome!",
+          description: "Redirecting to your dashboard...",
         });
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (error) throw error;
-
-        // Check admin role
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-
-        if (!roles) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Access Denied",
-            description: "You don't have admin privileges.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        toast({
-          title: "Welcome back!",
-          description: "Redirecting to admin dashboard...",
-        });
-
-        navigate("/admin/dashboard");
       }
     } catch (error: any) {
       console.error("Auth error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Authentication failed. Please try again.",
+        title: "Login Failed",
+        description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -141,29 +125,14 @@ const AdminLogin = () => {
               <Logo size="md" />
             </Link>
             <h1 className="text-2xl font-bold text-heading mb-2">
-              {isSignUp ? "Create Admin Account" : "Admin Login"}
+              ERP Login
             </h1>
             <p className="text-muted-foreground text-sm">
-              {isSignUp
-                ? "Sign up to request admin access"
-                : "Sign in to access the admin dashboard"}
+              Sign in to access your dashboard
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Full Name</label>
-                <Input
-                  required
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  placeholder="Your name"
-                  className="bg-background"
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
@@ -173,7 +142,7 @@ const AdminLogin = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="admin@example.com"
+                  placeholder="you@syncroweb.in"
                   className="bg-background pl-10"
                 />
               </div>
@@ -207,19 +176,9 @@ const AdminLogin = () => {
               disabled={isLoading}
               className="w-full bg-primary hover:bg-primary-hover"
             >
-              {isLoading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
-            </button>
-          </div>
 
           <div className="mt-8 pt-6 border-t border-border">
             <Link

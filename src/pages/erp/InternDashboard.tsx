@@ -13,6 +13,7 @@ const InternDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const [passwordChangeCompleted, setPasswordChangeCompleted] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -33,7 +34,8 @@ const InternDashboard = () => {
         setInternInfo(intern);
         
         // Check if password change is required (first login or admin reset)
-        if (!intern.password_changed || intern.password_reset_required) {
+        // Only show modal if password hasn't been changed in this session
+        if (!passwordChangeCompleted && (!intern.password_changed || intern.password_reset_required)) {
           setIsFirstLogin(!intern.password_changed);
           setShowPasswordModal(true);
         }
@@ -67,6 +69,7 @@ const InternDashboard = () => {
   };
 
   const handlePasswordChangeSuccess = () => {
+    setPasswordChangeCompleted(true); // Mark as completed to prevent modal from reopening
     setShowPasswordModal(false);
     toast({ title: "Password updated successfully!" });
     fetchData(); // Refresh data

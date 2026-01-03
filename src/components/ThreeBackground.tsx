@@ -1,171 +1,172 @@
-import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Points, PointMaterial } from "@react-three/drei";
-import * as THREE from "three";
-
-function ParticleField() {
-  const ref = useRef<THREE.Points>(null);
-  
-  const particlesPosition = useMemo(() => {
-    const positions = new Float32Array(2000 * 3);
-    for (let i = 0; i < 2000; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 10;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-    }
-    return positions;
-  }, []);
-
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.rotation.x = state.clock.elapsedTime * 0.05;
-      ref.current.rotation.y = state.clock.elapsedTime * 0.08;
-    }
-  });
-
-  return (
-    <Points ref={ref} positions={particlesPosition} stride={3} frustumCulled={false}>
-      <PointMaterial
-        transparent
-        color="#4F46E5"
-        size={0.015}
-        sizeAttenuation={true}
-        depthWrite={false}
-        opacity={0.6}
-      />
-    </Points>
-  );
-}
-
-function FloatingGeometry() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const torusRef = useRef<THREE.Mesh>(null);
-  const icosaRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    const time = state.clock.elapsedTime;
-    
-    if (meshRef.current) {
-      meshRef.current.rotation.x = time * 0.2;
-      meshRef.current.rotation.y = time * 0.3;
-      meshRef.current.position.y = Math.sin(time * 0.5) * 0.3;
-    }
-    
-    if (torusRef.current) {
-      torusRef.current.rotation.x = time * 0.15;
-      torusRef.current.rotation.z = time * 0.25;
-      torusRef.current.position.y = Math.sin(time * 0.4 + 1) * 0.2;
-    }
-    
-    if (icosaRef.current) {
-      icosaRef.current.rotation.y = time * 0.2;
-      icosaRef.current.rotation.z = time * 0.1;
-      icosaRef.current.position.y = Math.sin(time * 0.6 + 2) * 0.25;
-    }
-  });
-
-  return (
-    <>
-      <mesh ref={meshRef} position={[-2, 0, -2]}>
-        <octahedronGeometry args={[0.5, 0]} />
-        <meshStandardMaterial
-          color="#4F46E5"
-          wireframe
-          transparent
-          opacity={0.3}
-        />
-      </mesh>
-      
-      <mesh ref={torusRef} position={[2.5, 0.5, -1]}>
-        <torusGeometry args={[0.4, 0.15, 16, 32]} />
-        <meshStandardMaterial
-          color="#06B6D4"
-          wireframe
-          transparent
-          opacity={0.25}
-        />
-      </mesh>
-      
-      <mesh ref={icosaRef} position={[0, -1, -3]}>
-        <icosahedronGeometry args={[0.6, 0]} />
-        <meshStandardMaterial
-          color="#8B5CF6"
-          wireframe
-          transparent
-          opacity={0.2}
-        />
-      </mesh>
-    </>
-  );
-}
-
-function AnimatedLines() {
-  const linesRef = useRef<THREE.Group>(null);
-  
-  const lines = useMemo(() => {
-    const lineData = [];
-    for (let i = 0; i < 20; i++) {
-      const points = [];
-      const startX = (Math.random() - 0.5) * 8;
-      const startY = (Math.random() - 0.5) * 6;
-      const startZ = (Math.random() - 0.5) * 4 - 2;
-      
-      for (let j = 0; j < 5; j++) {
-        points.push(new THREE.Vector3(
-          startX + j * 0.3,
-          startY + Math.sin(j * 0.5) * 0.2,
-          startZ
-        ));
-      }
-      lineData.push(points);
-    }
-    return lineData;
-  }, []);
-
-  useFrame((state) => {
-    if (linesRef.current) {
-      linesRef.current.rotation.y = state.clock.elapsedTime * 0.02;
-    }
-  });
-
-  return (
-    <group ref={linesRef}>
-      {lines.map((points, index) => (
-        <line key={index}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={points.length}
-              array={new Float32Array(points.flatMap(p => [p.x, p.y, p.z]))}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial color="#4F46E5" transparent opacity={0.1} />
-        </line>
-      ))}
-    </group>
-  );
-}
+import { motion } from "framer-motion";
 
 const ThreeBackground = () => {
   return (
-    <div className="absolute inset-0 -z-10">
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 60 }}
-        style={{ background: 'transparent' }}
-        gl={{ alpha: true, antialias: true }}
-      >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={0.5} />
-        <pointLight position={[-10, -10, -10]} intensity={0.3} color="#06B6D4" />
-        
-        <ParticleField />
-        <FloatingGeometry />
-        <AnimatedLines />
-      </Canvas>
+    <div className="absolute inset-0 -z-10 overflow-hidden">
+      {/* Animated gradient orbs - floating elements */}
+      <motion.div
+        animate={{
+          x: [0, 100, 50, 0],
+          y: [0, 50, 100, 0],
+          scale: [1, 1.2, 0.9, 1],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          x: [0, -80, -40, 0],
+          y: [0, 80, 40, 0],
+          scale: [1, 0.9, 1.1, 1],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-1/2 right-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          x: [0, 60, -60, 0],
+          y: [0, -60, 60, 0],
+          scale: [1, 1.1, 0.95, 1],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"
+      />
+
+      {/* Additional floating orb */}
+      <motion.div
+        animate={{
+          x: [0, -40, 40, 0],
+          y: [0, 40, -40, 0],
+          scale: [1, 1.15, 0.85, 1],
+        }}
+        transition={{
+          duration: 22,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-1/3 right-1/3 w-64 h-64 bg-violet-500/8 rounded-full blur-3xl"
+      />
+
+      {/* Grid pattern overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
+        style={{
+          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}
+      />
+
+      {/* Floating particles */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1.5 h-1.5 bg-primary/30 rounded-full"
+          style={{
+            top: `${10 + (i * 4) % 80}%`,
+            left: `${5 + (i * 5) % 90}%`,
+          }}
+          animate={{
+            y: [-30, 30, -30],
+            x: [-15, 15, -15],
+            opacity: [0.2, 0.6, 0.2],
+            scale: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: 5 + (i % 5),
+            repeat: Infinity,
+            delay: i * 0.3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Floating geometric shapes */}
+      <motion.div
+        animate={{
+          rotate: [0, 360],
+          y: [-20, 20, -20],
+        }}
+        transition={{
+          rotate: { duration: 30, repeat: Infinity, ease: "linear" },
+          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+        }}
+        className="absolute top-1/4 right-1/4 w-16 h-16 border border-primary/20 rounded-lg"
+        style={{ transform: 'rotate(45deg)' }}
+      />
       
+      <motion.div
+        animate={{
+          rotate: [360, 0],
+          y: [20, -20, 20],
+        }}
+        transition={{
+          rotate: { duration: 25, repeat: Infinity, ease: "linear" },
+          y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+        }}
+        className="absolute bottom-1/3 left-1/4 w-12 h-12 border border-cyan-500/20 rounded-full"
+      />
+
+      <motion.div
+        animate={{
+          rotate: [0, -360],
+          x: [-15, 15, -15],
+        }}
+        transition={{
+          rotate: { duration: 35, repeat: Infinity, ease: "linear" },
+          x: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+        }}
+        className="absolute top-1/2 left-1/6 w-10 h-10 border border-violet-500/15"
+        style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }}
+      />
+
+      {/* Connecting lines */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.03] dark:opacity-[0.05]">
+        <motion.line
+          x1="10%"
+          y1="20%"
+          x2="40%"
+          y2="60%"
+          stroke="currentColor"
+          strokeWidth="1"
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <motion.line
+          x1="60%"
+          y1="30%"
+          x2="85%"
+          y2="70%"
+          stroke="currentColor"
+          strokeWidth="1"
+          animate={{ opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+        />
+        <motion.line
+          x1="25%"
+          y1="70%"
+          x2="70%"
+          y2="40%"
+          stroke="currentColor"
+          strokeWidth="1"
+          animate={{ opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 6, repeat: Infinity, delay: 2 }}
+        />
+      </svg>
+
       {/* Gradient overlay for smooth blending */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background pointer-events-none" />
     </div>
   );
 };

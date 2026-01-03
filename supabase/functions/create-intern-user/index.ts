@@ -197,7 +197,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <p><strong>Temporary Password:</strong> ${tempPassword}</p>
                   <p><strong>Domain:</strong> ${domain}</p>
                 </div>
-                <p>Please login and change your password after your first login.</p>
+                <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
                 <p>Best regards,<br>SyncroWeb Technologies Team</p>
               </div>
             `,

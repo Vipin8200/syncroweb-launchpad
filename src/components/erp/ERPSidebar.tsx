@@ -89,23 +89,6 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
           );
         })}
 
-        <Link
-          to={`/erp/${role}/notifications`}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            location.pathname.includes("notifications")
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-          )}
-        >
-          <Bell className="w-5 h-5" />
-          Notifications
-          {unreadNotifications > 0 && (
-            <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full">
-              {unreadNotifications}
-            </span>
-          )}
-        </Link>
       </nav>
 
       <div className="p-4 border-t border-border">

@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Temporary Password:</strong> ${data.tempPassword}</p>
               <p><strong>Domain:</strong> ${data.domain}</p>
             </div>
-            <p>Please login at <a href="${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '')}">/admin</a> and change your password after your first login.</p>
+            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
             <p>Best regards,<br>SyncroWeb Technologies Team</p>
           </div>
         `;
@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0;">${data.taskTitle}</h3>
             </div>
-            <p>Please login to your dashboard to view the full details and update your progress.</p>
+            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> to view the full details and update your progress.</p>
             <p>Best regards,<br>SyncroWeb Technologies Team</p>
           </div>
         `;
@@ -101,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Name:</strong> ${data.internName}</p>
               <p><strong>Domain:</strong> ${data.domain}</p>
             </div>
-            <p>Please login to the admin dashboard to review and approve or reject this intern.</p>
+            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> to review and approve or reject this intern.</p>
             <p>Best regards,<br>SyncroWeb Technologies System</p>
           </div>
         `;

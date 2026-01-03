@@ -28,15 +28,55 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const {
-      internId,
-      fullName,
-      personalEmail,
-      companyEmail,
-      tempPassword,
-      domain,
-      approvedBy,
-    }: CreateInternUserRequest = await req.json();
+    // Manual auth guard (we set verify_jwt=false in config due to "Invalid JWT" at the gateway).
+    // We still REQUIRE a valid logged-in user token and an admin role.
+    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const token = authHeader.slice(7).trim();
+    const { data: caller, error: callerError } = await supabaseAdmin.auth.getUser(token);
+
+    if (callerError || !caller?.user) {
+      console.error("Invalid auth token:", callerError);
+      return new Response(JSON.stringify({ error: "Invalid JWT" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const callerUserId = caller.user.id;
+
+    const { data: callerRole, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerUserId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleError) {
+      console.error("Role lookup failed:", roleError);
+      return new Response(JSON.stringify({ error: "Role check failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!callerRole) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const body: CreateInternUserRequest = await req.json();
+    const { internId, fullName, personalEmail, companyEmail, tempPassword, domain } = body;
+    const approvedBy = callerUserId;
+
 
     console.log(`Creating user for intern: ${fullName} (${companyEmail})`);
 

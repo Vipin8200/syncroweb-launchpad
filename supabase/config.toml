@@ -4,4 +4,5 @@ project_id = "hgqyyummtpvawdyerqnc"
 verify_jwt = true
 
 [functions.create-intern-user]
-verify_jwt = true
+verify_jwt = false
+

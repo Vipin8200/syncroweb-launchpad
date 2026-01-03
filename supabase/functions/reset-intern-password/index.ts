@@ -155,6 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <p><strong>New Password:</strong> ${passwordToSet}</p>
                 </div>
                 <p style="color: #dc2626;"><strong>Important:</strong> You will be required to change this password after logging in.</p>
+                <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a>.</p>
                 <p>Best regards,<br>SyncroWeb Technologies Team</p>
               </div>
             `,

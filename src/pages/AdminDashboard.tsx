@@ -262,12 +262,6 @@ const AdminDashboard = () => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground hidden md:block">{userEmail}</span>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/">
-                  <Home className="w-4 h-4 mr-1" />
-                  Website
-                </Link>
-              </Button>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-1" />
                 Logout

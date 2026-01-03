@@ -16,10 +16,18 @@ import { toast } from "sonner";
 interface PasswordChangeModalProps {
   isOpen: boolean;
   isFirstLogin?: boolean;
-  onSuccess: () => void;
+  completeFunctionName:
+    | "complete-intern-password-change"
+    | "complete-employee-password-change";
+  onSuccess: () => void | Promise<void>;
 }
 
-const PasswordChangeModal = ({ isOpen, isFirstLogin = false, onSuccess }: PasswordChangeModalProps) => {
+const PasswordChangeModal = ({
+  isOpen,
+  isFirstLogin = false,
+  completeFunctionName,
+  onSuccess,
+}: PasswordChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -52,30 +60,32 @@ const PasswordChangeModal = ({ isOpen, isFirstLogin = false, onSuccess }: Passwo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
 
     try {
-      // Update password in Supabase Auth
+      // Update password in auth
       const { error: authError } = await supabase.auth.updateUser({
         password: formData.newPassword,
       });
 
       if (authError) throw authError;
 
-      // Mark intern record as password changed (via backend function due to RLS)
+      // Mark role record as password changed (via backend function due to RLS)
       const { error: flagError } = await supabase.functions.invoke(
-        "complete-intern-password-change",
+        completeFunctionName,
         { body: {} }
       );
 
       if (flagError) throw flagError;
 
+      // IMPORTANT: keep modal open until parent refresh completes to avoid flicker
+      await onSuccess();
+
       toast.success("Password updated successfully!");
       setFormData({ newPassword: "", confirmPassword: "" });
-      onSuccess();
     } catch (error: any) {
       console.error("Password update error:", error);
       toast.error(error.message || "Failed to update password");

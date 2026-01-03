@@ -13,7 +13,6 @@ const InternDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
-  const [passwordChangeCompleted, setPasswordChangeCompleted] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -21,7 +20,9 @@ const InternDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) return;
 
       const { data: intern } = await supabase
@@ -32,14 +33,11 @@ const InternDashboard = () => {
 
       if (intern) {
         setInternInfo(intern);
-        
-        // Check if password change is required (first login or admin reset)
-        // Only show modal if password hasn't been changed in this session
-        if (!passwordChangeCompleted && (!intern.password_changed || intern.password_reset_required)) {
-          setIsFirstLogin(!intern.password_changed);
-          setShowPasswordModal(true);
-        }
-        
+
+        const requiresPasswordChange = !intern.password_changed || intern.password_reset_required;
+        setIsFirstLogin(!intern.password_changed);
+        setShowPasswordModal(requiresPasswordChange);
+
         const { data: taskData } = await supabase
           .from("tasks")
           .select("*")
@@ -68,11 +66,9 @@ const InternDashboard = () => {
     }
   };
 
-  const handlePasswordChangeSuccess = () => {
-    setPasswordChangeCompleted(true); // Mark as completed to prevent modal from reopening
-    setShowPasswordModal(false);
-    toast({ title: "Password updated successfully!" });
-    fetchData(); // Refresh data
+  const handlePasswordChangeSuccess = async () => {
+    // Re-fetch DB flags; modal will close only when flags say it's completed.
+    await fetchData();
   };
 
   const stats = {
@@ -86,6 +82,7 @@ const InternDashboard = () => {
       <PasswordChangeModal
         isOpen={showPasswordModal}
         isFirstLogin={isFirstLogin}
+        completeFunctionName="complete-intern-password-change"
         onSuccess={handlePasswordChangeSuccess}
       />
       

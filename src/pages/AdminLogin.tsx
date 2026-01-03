@@ -7,17 +7,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { session, userRole, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  // Redirect if already logged in with a valid role
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (session && userRole) {
+      if (userRole === "admin") {
+        navigate("/erp/admin/dashboard", { replace: true });
+      } else if (userRole === "employee") {
+        navigate("/erp/employee/dashboard", { replace: true });
+      } else if (userRole === "intern") {
+        navigate("/erp/intern/dashboard", { replace: true });
+      }
+    }
+  }, [session, userRole, authLoading, navigate]);
 
   const redirectBasedOnRole = async (userId: string) => {
     // Check user role and redirect accordingly
@@ -36,14 +53,14 @@ const AdminLogin = () => {
       return false;
     }
 
-    const userRole = roles[0].role;
+    const role = roles[0].role;
 
-    if (userRole === "admin") {
-      navigate("/erp/admin/dashboard");
-    } else if (userRole === "employee") {
-      navigate("/erp/employee/dashboard");
-    } else if (userRole === "intern") {
-      navigate("/erp/intern/dashboard");
+    if (role === "admin") {
+      navigate("/erp/admin/dashboard", { replace: true });
+    } else if (role === "employee") {
+      navigate("/erp/employee/dashboard", { replace: true });
+    } else if (role === "intern") {
+      navigate("/erp/intern/dashboard", { replace: true });
     } else {
       await supabase.auth.signOut();
       toast({
@@ -56,28 +73,6 @@ const AdminLogin = () => {
 
     return true;
   };
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          // Defer the role check to avoid deadlock
-          setTimeout(() => {
-            redirectBasedOnRole(session.user.id);
-          }, 0);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        redirectBasedOnRole(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

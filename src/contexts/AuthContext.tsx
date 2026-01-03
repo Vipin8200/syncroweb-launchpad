@@ -34,23 +34,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    // Listen for auth changes
+    // Listen for auth changes FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
+
+      if (session?.user) {
+        setIsLoading(true);
+        // Defer Supabase calls to avoid auth deadlocks
+        setTimeout(() => {
+          fetchUserData(session.user.id, session.user.email);
+        }, 0);
       } else {
         setUserRole(null);
         setUserName("");
@@ -58,32 +53,52 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
+    // THEN check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setIsLoading(true);
+        setTimeout(() => {
+          fetchUserData(session.user.id, session.user.email);
+        }, 0);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserData = async (userId: string) => {
+  const fetchUserData = async (userId: string, fallbackEmail?: string | null) => {
     try {
       // Get user role
-      const { data: roles } = await supabase
+      const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
 
+      if (rolesError) throw rolesError;
+
       if (roles && roles.length > 0) {
         setUserRole(roles[0].role as AppRole);
+      } else {
+        setUserRole(null);
       }
 
       // Get user name from profile
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("full_name")
         .eq("id", userId)
         .maybeSingle();
 
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserName(profile?.full_name || user?.email || "User");
+      if (profileError) throw profileError;
+
+      setUserName(profile?.full_name || fallbackEmail || "User");
     } catch (error) {
       console.error("Error fetching user data:", error);
+      setUserRole(null);
+      setUserName("");
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +114,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const refreshAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      await fetchUserData(session.user.id);
+      await fetchUserData(session.user.id, session.user.email);
     }
   };
 

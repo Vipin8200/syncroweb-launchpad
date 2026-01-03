@@ -51,8 +51,8 @@ const EmployeeDashboard = () => {
           <StatsCard title="Pending Tasks" value={stats.pendingTasks} icon={CheckSquare} />
         </div>
         <div className="flex gap-4">
-          <Button asChild><Link to="/employee/add-intern"><UserPlus className="w-4 h-4 mr-2" />Add Intern</Link></Button>
-          <Button asChild variant="outline"><Link to="/employee/tasks">Manage Tasks</Link></Button>
+          <Button asChild><Link to="/erp/employee/add-intern"><UserPlus className="w-4 h-4 mr-2" />Add Intern</Link></Button>
+          <Button asChild variant="outline"><Link to="/erp/employee/tasks">Manage Tasks</Link></Button>
         </div>
       </div>
     </ERPLayout>

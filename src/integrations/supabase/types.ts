@@ -43,6 +43,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          added_by: string | null
           created_at: string
           department: string
           email: string
@@ -50,12 +51,17 @@ export type Database = {
           id: string
           is_active: boolean
           join_date: string
+          password_changed: boolean
+          password_reset_required: boolean
+          personal_email: string | null
           phone: string | null
           position: string
+          temp_password: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          added_by?: string | null
           created_at?: string
           department: string
           email: string
@@ -63,12 +69,17 @@ export type Database = {
           id?: string
           is_active?: boolean
           join_date?: string
+          password_changed?: boolean
+          password_reset_required?: boolean
+          personal_email?: string | null
           phone?: string | null
           position: string
+          temp_password?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          added_by?: string | null
           created_at?: string
           department?: string
           email?: string
@@ -76,8 +87,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           join_date?: string
+          password_changed?: boolean
+          password_reset_required?: boolean
+          personal_email?: string | null
           phone?: string | null
           position?: string
+          temp_password?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -412,6 +427,8 @@ export type Database = {
         Row: {
           assigned_by: string
           assigned_to: string
+          assigned_to_employee: string | null
+          assigned_to_type: string
           completed_at: string | null
           created_at: string
           description: string | null
@@ -425,6 +442,8 @@ export type Database = {
         Insert: {
           assigned_by: string
           assigned_to: string
+          assigned_to_employee?: string | null
+          assigned_to_type?: string
           completed_at?: string | null
           created_at?: string
           description?: string | null
@@ -438,6 +457,8 @@ export type Database = {
         Update: {
           assigned_by?: string
           assigned_to?: string
+          assigned_to_employee?: string | null
+          assigned_to_type?: string
           completed_at?: string | null
           created_at?: string
           description?: string | null
@@ -449,6 +470,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_employee_fkey"
+            columns: ["assigned_to_employee"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_assigned_to_fkey"
             columns: ["assigned_to"]

@@ -12,3 +12,6 @@ verify_jwt = false
 [functions.complete-intern-password-change]
 verify_jwt = false
 
+[functions.create-employee-user]
+verify_jwt = false
+

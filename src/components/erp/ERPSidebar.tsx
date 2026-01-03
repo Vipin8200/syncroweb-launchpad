@@ -32,7 +32,7 @@ const adminNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/erp/admin/dashboard" },
   { label: "Employees", icon: Users, path: "/erp/admin/employees" },
   { label: "Interns", icon: GraduationCap, path: "/erp/admin/interns" },
-  { label: "Add Intern", icon: UserPlus, path: "/erp/admin/add-intern" },
+  { label: "Tasks", icon: ClipboardList, path: "/erp/admin/tasks" },
   { label: "Approvals", icon: CheckSquare, path: "/erp/admin/approvals" },
   { label: "Internship Programs", icon: Briefcase, path: "/erp/admin/internship-programs" },
   { label: "Job Postings", icon: Briefcase, path: "/erp/admin/jobs" },

@@ -17,9 +17,11 @@ import NotFound from "./pages/NotFound";
 // ERP Pages
 import AdminDashboard from "./pages/erp/AdminDashboard";
 import AdminEmployees from "./pages/erp/AdminEmployees";
+import AdminAddEmployee from "./pages/erp/AdminAddEmployee";
 import AdminApprovals from "./pages/erp/AdminApprovals";
 import AdminInterns from "./pages/erp/AdminInterns";
 import AdminAddIntern from "./pages/erp/AdminAddIntern";
+import AdminTasks from "./pages/erp/AdminTasks";
 import AdminInternshipPrograms from "./pages/erp/AdminInternshipPrograms";
 import AdminJobPostings from "./pages/erp/AdminJobPostings";
 import AdminApplications from "./pages/erp/AdminApplications";
@@ -57,9 +59,11 @@ const App = () => (
             {/* Admin ERP Routes */}
             <Route path="/erp/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/erp/admin/employees" element={<AdminEmployees />} />
+            <Route path="/erp/admin/add-employee" element={<AdminAddEmployee />} />
             <Route path="/erp/admin/approvals" element={<AdminApprovals />} />
             <Route path="/erp/admin/interns" element={<AdminInterns />} />
             <Route path="/erp/admin/add-intern" element={<AdminAddIntern />} />
+            <Route path="/erp/admin/tasks" element={<AdminTasks />} />
             <Route path="/erp/admin/internship-programs" element={<AdminInternshipPrograms />} />
             <Route path="/erp/admin/jobs" element={<AdminJobPostings />} />
             <Route path="/erp/admin/applications" element={<AdminApplications />} />

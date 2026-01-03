@@ -1,11 +1,12 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Bell, Check, CheckCheck, Info, AlertTriangle, CheckCircle } from "lucide-react";
+import { Bell, Check, CheckCheck, Info, AlertTriangle, CheckCircle, Volume2 } from "lucide-react";
 import { format } from "date-fns";
 
 const Notifications = () => {
@@ -26,6 +27,36 @@ const Notifications = () => {
       return data;
     },
   });
+
+  // Set up realtime subscription for this page
+  useEffect(() => {
+    const setupSubscription = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const channel = supabase
+        .channel(`notifications-page-${userData.user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userData.user.id}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupSubscription();
+  }, [queryClient]);
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {

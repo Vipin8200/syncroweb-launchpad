@@ -102,6 +102,16 @@ const AdminApprovals = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      // Get the new user_id from the response to send notification
+      if (data?.userId) {
+        await supabase.from("notifications").insert({
+          user_id: data.userId,
+          title: "Welcome to the Team!",
+          message: `Your internship application has been approved. You can now log in with your company email: ${companyEmail}`,
+          type: "success",
+        });
+      }
+
       toast({
         title: "Intern Approved",
         description: `${intern.full_name} has been approved. Credentials: ${companyEmail}`,

@@ -131,17 +131,6 @@ const Navigation = () => {
           <div className="hidden md:flex items-center gap-3">
             <Button
               asChild
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Link to="/admin">
-                <Settings className="w-4 h-4 mr-1" />
-                Admin
-              </Link>
-            </Button>
-            <Button
-              asChild
               className="bg-primary hover:bg-primary-hover transition-colors glow-primary"
             >
               <Link to="/contact">Get a Quote</Link>
@@ -217,16 +206,6 @@ const Navigation = () => {
               </div>
 
               <div className="flex flex-col gap-2 pt-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Admin Panel
-                  </Link>
-                </Button>
                 <Button
                   asChild
                   className="w-full bg-primary hover:bg-primary-hover"

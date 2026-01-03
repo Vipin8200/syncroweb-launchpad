@@ -119,7 +119,7 @@ const AdminJobPostings = () => {
   return (
     <ERPLayout allowedRoles={["admin"]}>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Job Postings</h1>
             <p className="text-muted-foreground">Manage job listings for your organization</p>
@@ -262,9 +262,9 @@ const AdminJobPostings = () => {
             {jobs?.map((job) => (
               <Card key={job.id}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <CardTitle className="text-lg">{job.title}</CardTitle>
                         <Badge variant={job.is_active ? "default" : "secondary"}>
                           {job.is_active ? "Active" : "Inactive"}
@@ -272,7 +272,7 @@ const AdminJobPostings = () => {
                       </div>
                       <p className="text-sm text-muted-foreground">{job.department}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Switch
                         checked={job.is_active}
                         onCheckedChange={(checked) =>

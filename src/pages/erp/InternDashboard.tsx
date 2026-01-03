@@ -103,15 +103,15 @@ const InternDashboard = () => {
           ) : (
             <div className="space-y-3">
               {tasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                  <div>
-                    <p className="font-medium">{task.title}</p>
-                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                <div key={task.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-secondary rounded-lg">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{task.title}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
                   </div>
                   <select
                     value={task.status}
                     onChange={(e) => updateTaskStatus(task.id, e.target.value)}
-                    className="bg-background border border-border rounded px-3 py-1 text-sm"
+                    className="bg-background border border-border rounded px-3 py-2 text-sm w-full sm:w-auto"
                   >
                     <option value="pending">Pending</option>
                     <option value="in_progress">In Progress</option>

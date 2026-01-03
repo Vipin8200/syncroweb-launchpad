@@ -68,23 +68,23 @@ const AdminMessages = () => {
             {messages?.map((message) => (
               <Card key={message.id} className={!message.is_read ? "border-primary/50" : ""}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <CardTitle className="text-lg">{message.name}</CardTitle>
                         {!message.is_read && <Badge variant="secondary">New</Badge>}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="h-4 w-4" />
-                        <a href={`mailto:${message.email}`} className="hover:underline">
+                        <Mail className="h-4 w-4 shrink-0" />
+                        <a href={`mailto:${message.email}`} className="hover:underline truncate">
                           {message.email}
                         </a>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        {format(new Date(message.created_at), "PPP")}
+                        <span className="whitespace-nowrap">{format(new Date(message.created_at), "PPP")}</span>
                       </div>
                       {!message.is_read && (
                         <Button

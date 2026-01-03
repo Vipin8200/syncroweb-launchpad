@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
@@ -6,14 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { FileText, Mail, Phone, Briefcase, Calendar, ExternalLink, Download } from "lucide-react";
+import { FileText, Mail, Phone, Briefcase, Calendar, ExternalLink, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
+import { ResumeViewerModal } from "@/components/ResumeViewerModal";
 
 type ApplicationStatus = Tables<"job_applications">["status"];
 
 const AdminApplications = () => {
   const queryClient = useQueryClient();
+  const [selectedResume, setSelectedResume] = useState<{ url: string; name: string } | null>(null);
 
   const { data: applications, isLoading } = useQuery({
     queryKey: ["job-applications"],
@@ -119,21 +122,21 @@ const AdminApplications = () => {
                 <CardContent className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href={`mailto:${app.email}`} className="hover:underline">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a href={`mailto:${app.email}`} className="hover:underline truncate">
                         {app.email}
                       </a>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span>{app.phone}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span>{app.years_experience} years exp.</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span>{format(new Date(app.created_at), "PPP")}</span>
                     </div>
                   </div>
@@ -154,12 +157,22 @@ const AdminApplications = () => {
 
                   <div className="flex gap-2 flex-wrap">
                     {app.resume_url && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={app.resume_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="mr-2 h-4 w-4" />
-                          Resume
-                        </a>
-                      </Button>
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedResume({ url: app.resume_url!, name: app.full_name })}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View CV
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={app.resume_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download CV
+                          </a>
+                        </Button>
+                      </>
                     )}
                     {app.portfolio_url && (
                       <Button variant="outline" size="sm" asChild>
@@ -176,6 +189,13 @@ const AdminApplications = () => {
           </div>
         )}
       </div>
+
+      <ResumeViewerModal
+        isOpen={!!selectedResume}
+        onClose={() => setSelectedResume(null)}
+        resumeUrl={selectedResume?.url || null}
+        applicantName={selectedResume?.name || ""}
+      />
     </ERPLayout>
   );
 };

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Briefcase, GraduationCap, Settings } from "lucide-react";
+import { Menu, X, ChevronDown, Briefcase, GraduationCap } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import { Button } from "./ui/button";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -129,6 +130,7 @@ const Navigation = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Button
               asChild
               className="bg-primary hover:bg-primary-hover transition-colors glow-primary"
@@ -138,13 +140,16 @@ const Navigation = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+            <button
+              className="p-2 text-foreground"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
 

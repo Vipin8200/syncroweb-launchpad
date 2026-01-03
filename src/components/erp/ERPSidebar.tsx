@@ -5,7 +5,6 @@ import {
   GraduationCap,
   Briefcase,
   CheckSquare,
-  Bell,
   Settings,
   LogOut,
   Mail,
@@ -15,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -91,7 +91,11 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
 
       </nav>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border space-y-2">
+        <div className="flex items-center justify-between px-3 py-1">
+          <span className="text-sm text-muted-foreground">Theme</span>
+          <ThemeToggle />
+        </div>
         <Button
           variant="ghost"
           className="w-full justify-start text-muted-foreground hover:text-foreground"

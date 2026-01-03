@@ -161,6 +161,8 @@ const handler = async (req: Request): Promise<Response> => {
         temp_password: tempPassword,
         approved_by: approvedBy,
         start_date: new Date().toISOString().split("T")[0],
+        password_changed: false, // Reset so intern must change password on first login
+        password_reset_required: false,
       })
       .eq("id", internId);
 

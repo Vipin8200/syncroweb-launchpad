@@ -2,3 +2,6 @@ project_id = "hgqyyummtpvawdyerqnc"
 
 [functions.send-notification]
 verify_jwt = true
+
+[functions.create-intern-user]
+verify_jwt = true

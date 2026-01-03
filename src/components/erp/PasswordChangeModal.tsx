@@ -65,22 +65,13 @@ const PasswordChangeModal = ({ isOpen, isFirstLogin = false, onSuccess }: Passwo
 
       if (authError) throw authError;
 
-      // Update intern record to mark password as changed
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { error: updateError } = await supabase
-          .from("interns")
-          .update({ 
-            password_changed: true,
-            password_reset_required: false,
-            temp_password: null // Clear temp password for security
-          })
-          .eq("user_id", session.user.id);
+      // Mark intern record as password changed (via backend function due to RLS)
+      const { error: flagError } = await supabase.functions.invoke(
+        "complete-intern-password-change",
+        { body: {} }
+      );
 
-        if (updateError) {
-          console.error("Error updating intern record:", updateError);
-        }
-      }
+      if (flagError) throw flagError;
 
       toast.success("Password updated successfully!");
       setFormData({ newPassword: "", confirmPassword: "" });

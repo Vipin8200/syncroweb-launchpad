@@ -6,3 +6,6 @@ verify_jwt = true
 [functions.create-intern-user]
 verify_jwt = false
 
+[functions.reset-intern-password]
+verify_jwt = false
+

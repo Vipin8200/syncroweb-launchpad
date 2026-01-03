@@ -96,6 +96,8 @@ export type Database = {
           end_date: string | null
           full_name: string
           id: string
+          password_changed: boolean
+          password_reset_required: boolean
           personal_email: string
           phone: string
           start_date: string | null
@@ -116,6 +118,8 @@ export type Database = {
           end_date?: string | null
           full_name: string
           id?: string
+          password_changed?: boolean
+          password_reset_required?: boolean
           personal_email: string
           phone: string
           start_date?: string | null
@@ -136,6 +140,8 @@ export type Database = {
           end_date?: string | null
           full_name?: string
           id?: string
+          password_changed?: boolean
+          password_reset_required?: boolean
           personal_email?: string
           phone?: string
           start_date?: string | null

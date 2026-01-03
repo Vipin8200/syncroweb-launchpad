@@ -3,7 +3,7 @@ import { CheckSquare, Clock, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
 import StatsCard from "@/components/erp/StatsCard";
-import { Button } from "@/components/ui/button";
+import PasswordChangeModal from "@/components/erp/PasswordChangeModal";
 import { useToast } from "@/hooks/use-toast";
 
 const InternDashboard = () => {
@@ -11,6 +11,8 @@ const InternDashboard = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [internInfo, setInternInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -29,6 +31,13 @@ const InternDashboard = () => {
 
       if (intern) {
         setInternInfo(intern);
+        
+        // Check if password change is required (first login or admin reset)
+        if (!intern.password_changed || intern.password_reset_required) {
+          setIsFirstLogin(!intern.password_changed);
+          setShowPasswordModal(true);
+        }
+        
         const { data: taskData } = await supabase
           .from("tasks")
           .select("*")
@@ -57,6 +66,12 @@ const InternDashboard = () => {
     }
   };
 
+  const handlePasswordChangeSuccess = () => {
+    setShowPasswordModal(false);
+    toast({ title: "Password updated successfully!" });
+    fetchData(); // Refresh data
+  };
+
   const stats = {
     pending: tasks.filter((t) => t.status === "pending").length,
     inProgress: tasks.filter((t) => t.status === "in_progress").length,
@@ -65,6 +80,12 @@ const InternDashboard = () => {
 
   return (
     <ERPLayout requiredRole="intern">
+      <PasswordChangeModal
+        isOpen={showPasswordModal}
+        isFirstLogin={isFirstLogin}
+        onSuccess={handlePasswordChangeSuccess}
+      />
+      
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome, {internInfo?.full_name}</h1>

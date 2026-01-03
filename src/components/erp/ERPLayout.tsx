@@ -40,9 +40,9 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
     
     if (rolesAllowed.length > 0 && !rolesAllowed.includes(userRole)) {
       // Redirect to correct dashboard
-      if (userRole === "admin") navigate("/admin/dashboard", { replace: true });
-      else if (userRole === "employee") navigate("/employee/dashboard", { replace: true });
-      else if (userRole === "intern") navigate("/intern/dashboard", { replace: true });
+      if (userRole === "admin") navigate("/erp/admin/dashboard", { replace: true });
+      else if (userRole === "employee") navigate("/erp/employee/dashboard", { replace: true });
+      else if (userRole === "intern") navigate("/erp/intern/dashboard", { replace: true });
       return;
     }
 
@@ -133,7 +133,7 @@ const ERPLayout = ({ children, requiredRole, allowedRoles }: ERPLayoutProps) => 
               variant="ghost"
               size="icon"
               className="relative"
-              onClick={() => navigate(`/${userRole}/notifications`)}
+              onClick={() => navigate(`/erp/${userRole}/notifications`)}
             >
               <Bell className="w-5 h-5" />
               {unreadNotifications > 0 && (

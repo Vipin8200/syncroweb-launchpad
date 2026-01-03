@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GraduationCap, Search, Edit, Trash2, MoreHorizontal, Key, Mail, Copy, Check } from "lucide-react";
+import { GraduationCap, Search, Edit, Trash2, MoreHorizontal, Key, Mail, Copy, Check, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,7 @@ interface Intern {
   start_date: string | null;
   end_date: string | null;
   created_at: string;
+  user_id: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -90,6 +91,11 @@ const AdminInterns = () => {
   // Credentials dialog state
   const [viewingCredentials, setViewingCredentials] = useState<Intern | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+
+  // Reset password state
+  const [resettingPassword, setResettingPassword] = useState<Intern | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newResetPassword, setNewResetPassword] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInterns();
@@ -241,6 +247,33 @@ const AdminInterns = () => {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resettingPassword) return;
+
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-intern-password", {
+        body: { internId: resettingPassword.id },
+      });
+
+      if (error) throw error;
+      
+      setNewResetPassword(data.newPassword);
+      toast.success("Password reset successfully! Email sent to intern.");
+      fetchInterns();
+    } catch (err: any) {
+      toast.error("Failed to reset password: " + err.message);
+      setResettingPassword(null);
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const closeResetDialog = () => {
+    setResettingPassword(null);
+    setNewResetPassword(null);
+  };
+
   return (
     <ERPLayout requiredRole="admin">
       <div className="space-y-6">
@@ -368,6 +401,12 @@ const AdminInterns = () => {
                               <DropdownMenuItem onClick={() => resendCredentials(intern)}>
                                 <Mail className="h-4 w-4 mr-2" />
                                 Resend Email
+                              </DropdownMenuItem>
+                            )}
+                            {intern.user_id && (
+                              <DropdownMenuItem onClick={() => setResettingPassword(intern)}>
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Reset Password
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem 
@@ -556,6 +595,67 @@ const AdminInterns = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={!!resettingPassword} onOpenChange={closeResetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              {newResetPassword 
+                ? `Password has been reset for ${resettingPassword?.full_name}` 
+                : `Reset password for ${resettingPassword?.full_name}?`}
+            </DialogDescription>
+          </DialogHeader>
+          {newResetPassword ? (
+            <div className="space-y-4 py-4">
+              <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <p className="text-sm text-green-600 font-medium mb-2">Password reset successful!</p>
+                <p className="text-sm text-muted-foreground">An email with the new password has been sent to the intern.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>New Password</Label>
+                <div className="flex gap-2">
+                  <Input value={newResetPassword} readOnly className="font-mono" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(newResetPassword, "resetPassword")}
+                  >
+                    {copied === "resetPassword" ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={closeResetDialog}>Close</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                This will generate a new password and send it to the intern's personal email. 
+                The intern will be required to change this password on their next login.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={closeResetDialog}>Cancel</Button>
+                <Button onClick={handleResetPassword} disabled={isResettingPassword}>
+                  {isResettingPassword ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reset Password
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ERPLayout>
   );
 };

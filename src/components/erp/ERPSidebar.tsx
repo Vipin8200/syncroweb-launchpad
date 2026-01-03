@@ -29,30 +29,29 @@ interface ERPSidebarProps {
 }
 
 const adminNav: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-  { label: "Employees", icon: Users, path: "/admin/employees" },
-  { label: "Interns", icon: GraduationCap, path: "/admin/interns" },
-  { label: "Add Intern", icon: UserPlus, path: "/admin/add-intern" },
-  { label: "Approvals", icon: CheckSquare, path: "/admin/approvals" },
-  { label: "Internship Programs", icon: Briefcase, path: "/admin/internship-programs" },
-  { label: "Job Postings", icon: Briefcase, path: "/admin/jobs" },
-  { label: "Applications", icon: ClipboardList, path: "/admin/applications" },
-  { label: "Internship Enquiries", icon: Mail, path: "/admin/internship-enquiries" },
-  { label: "Messages", icon: Mail, path: "/admin/messages" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/erp/admin/dashboard" },
+  { label: "Employees", icon: Users, path: "/erp/admin/employees" },
+  { label: "Interns", icon: GraduationCap, path: "/erp/admin/interns" },
+  { label: "Add Intern", icon: UserPlus, path: "/erp/admin/add-intern" },
+  { label: "Approvals", icon: CheckSquare, path: "/erp/admin/approvals" },
+  { label: "Internship Programs", icon: Briefcase, path: "/erp/admin/internship-programs" },
+  { label: "Job Postings", icon: Briefcase, path: "/erp/admin/jobs" },
+  { label: "Applications", icon: ClipboardList, path: "/erp/admin/applications" },
+  { label: "Internship Enquiries", icon: Mail, path: "/erp/admin/internship-enquiries" },
+  { label: "Messages", icon: Mail, path: "/erp/admin/messages" },
 ];
 
 const employeeNav: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/employee/dashboard" },
-  { label: "Add Intern", icon: UserPlus, path: "/employee/add-intern" },
-  { label: "My Interns", icon: GraduationCap, path: "/employee/interns" },
-  { label: "Tasks", icon: CheckSquare, path: "/employee/tasks" },
-  { label: "Internship Postings", icon: Briefcase, path: "/employee/postings" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/erp/employee/dashboard" },
+  { label: "Add Intern", icon: UserPlus, path: "/erp/employee/add-intern" },
+  { label: "My Interns", icon: GraduationCap, path: "/erp/employee/interns" },
+  { label: "Tasks", icon: CheckSquare, path: "/erp/employee/tasks" },
 ];
 
 const internNav: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/intern/dashboard" },
-  { label: "My Tasks", icon: CheckSquare, path: "/intern/tasks" },
-  { label: "Profile", icon: Settings, path: "/intern/profile" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/erp/intern/dashboard" },
+  { label: "My Tasks", icon: CheckSquare, path: "/erp/intern/tasks" },
+  { label: "Profile", icon: Settings, path: "/erp/intern/profile" },
 ];
 
 const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps) => {
@@ -72,7 +71,7 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
 
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
           return (
             <Link
               key={item.path}
@@ -91,7 +90,7 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
         })}
 
         <Link
-          to={`/${role}/notifications`}
+          to={`/erp/${role}/notifications`}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
             location.pathname.includes("notifications")

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Briefcase, Send, Upload, X, ChevronRight } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Briefcase, Send, Upload, X, ChevronRight, FileText, Loader2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,8 @@ const Careers = () => {
   const [isApplying, setIsApplying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -75,15 +77,76 @@ const Careers = () => {
     }
   };
 
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a PDF or Word document.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setResumeFile(file);
+    }
+  };
+
+  const uploadResume = async (): Promise<string | null> => {
+    if (!resumeFile) return null;
+
+    setIsUploadingResume(true);
+    try {
+      const fileExt = resumeFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `job-applications/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, resumeFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Error uploading resume:", error);
+      throw error;
+    } finally {
+      setIsUploadingResume(false);
+    }
+  };
+
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedJob) return;
 
     setIsSubmitting(true);
     try {
+      let resumeUrl: string | null = null;
+
+      if (resumeFile) {
+        resumeUrl = await uploadResume();
+      }
+
       const { error } = await supabase.from("job_applications").insert({
         job_id: selectedJob.id,
         ...formData,
+        resume_url: resumeUrl,
       });
 
       if (error) throw error;
@@ -94,6 +157,7 @@ const Careers = () => {
       });
 
       setIsApplying(false);
+      setResumeFile(null);
       setFormData({
         full_name: "",
         email: "",
@@ -326,6 +390,46 @@ const Careers = () => {
                         </div>
                       </div>
 
+                      {/* Resume Upload */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Resume/CV</label>
+                        <div className="border-2 border-dashed border-border rounded-lg p-4 transition-colors hover:border-primary/50">
+                          {resumeFile ? (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-8 h-8 text-primary" />
+                                <div>
+                                  <p className="font-medium text-foreground">{resumeFile.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {(resumeFile.size / 1024 / 1024).toFixed(2)} MB
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setResumeFile(null)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center cursor-pointer py-4">
+                              <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                              <p className="text-sm font-medium text-foreground">Click to upload your resume</p>
+                              <p className="text-xs text-muted-foreground mt-1">PDF or Word (max 5MB)</p>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept=".pdf,.doc,.docx"
+                                onChange={handleResumeChange}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-sm font-medium mb-2">Portfolio/LinkedIn URL</label>
                         <Input
@@ -359,10 +463,17 @@ const Careers = () => {
                         </Button>
                         <Button
                           type="submit"
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || isUploadingResume}
                           className="flex-1 bg-primary hover:bg-primary-hover glow-primary"
                         >
-                          {isSubmitting ? "Submitting..." : "Submit Application"}
+                          {isSubmitting || isUploadingResume ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {isUploadingResume ? "Uploading..." : "Submitting..."}
+                            </>
+                          ) : (
+                            "Submit Application"
+                          )}
                         </Button>
                       </div>
                     </form>
@@ -426,12 +537,13 @@ const Careers = () => {
                                     <MapPin className="w-3 h-3" />
                                     {job.location}
                                   </span>
-                                  <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
                                     {formatJobType(job.job_type)}
                                   </span>
                                 </div>
                               </div>
-                              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                           </button>
                         </motion.div>
@@ -445,41 +557,21 @@ const Careers = () => {
         </div>
       </section>
 
-      {/* Why Join Section */}
+      {/* CTA Section */}
       <section className="section-padding">
         <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <h2 className="text-3xl font-bold text-heading mb-6">
-              Why Join <span className="gradient-text">SyncroWeb?</span>
+          <div className="glass-card p-12 text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-heading mb-4">
+              Don't See the Right Fit?
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-              {[
-                { title: "Growth Opportunities", desc: "Continuous learning and career advancement" },
-                { title: "Work-Life Balance", desc: "Flexible hours and remote work options" },
-                { title: "Modern Tech Stack", desc: "Work with cutting-edge technologies" },
-                { title: "Collaborative Culture", desc: "Supportive and inclusive team environment" },
-                { title: "Competitive Pay", desc: "Industry-standard compensation packages" },
-                { title: "Health Benefits", desc: "Comprehensive health insurance coverage" },
-              ].map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="glass-card p-6 text-center hover-lift"
-                >
-                  <h3 className="font-semibold text-heading mb-2">{item.title}</h3>
-                  <p className="text-sm text-body">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+            <p className="text-body mb-8">
+              We're always interested in hearing from talented individuals. Send us your
+              resume and we'll reach out when we have a position that matches your skills.
+            </p>
+            <Button asChild className="bg-primary hover:bg-primary-hover glow-primary">
+              <Link to="/contact">Contact Us</Link>
+            </Button>
+          </div>
         </div>
       </section>
 

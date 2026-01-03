@@ -139,7 +139,7 @@ const AdminAddIntern = () => {
       <ERPLayout requiredRole="admin">
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/interns")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/erp/admin/interns")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -186,7 +186,7 @@ const AdminAddIntern = () => {
                 <Button onClick={handleAddAnother} className="flex-1">
                   Add Another Intern
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/admin/interns")} className="flex-1">
+                <Button variant="outline" onClick={() => navigate("/erp/admin/interns")} className="flex-1">
                   View All Interns
                 </Button>
               </div>

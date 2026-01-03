@@ -61,7 +61,7 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
     role === "admin" ? adminNav : role === "employee" ? employeeNav : internNav;
 
   return (
-    <aside className="w-64 bg-card border-r border-border min-h-screen flex flex-col">
+    <aside className="w-64 bg-card border-r border-border min-h-screen flex flex-col shrink-0">
       <div className="p-4 border-b border-border">
         <Link to="/">
           <Logo size="sm" />
@@ -69,7 +69,7 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
         <p className="text-xs text-muted-foreground mt-2 capitalize">{role} Panel</p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
           return (
@@ -83,8 +83,8 @@ const ERPSidebar = ({ role, onLogout, unreadNotifications = 0 }: ERPSidebarProps
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               )}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <item.icon className="w-5 h-5 shrink-0" />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}

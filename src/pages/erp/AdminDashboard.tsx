@@ -125,29 +125,29 @@ const AdminDashboardNew = () => {
           {/* Quick Actions */}
           <div className="bg-card border border-border rounded-xl p-6">
             <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <Button asChild variant="outline" className="justify-start">
-                <Link to="/admin/employees">
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Employees
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button asChild variant="outline" className="justify-start text-left">
+                <Link to="/erp/admin/employees">
+                  <Users className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">Manage Employees</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="justify-start">
-                <Link to="/admin/approvals">
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  Review Approvals
+              <Button asChild variant="outline" className="justify-start text-left">
+                <Link to="/erp/admin/approvals">
+                  <CheckSquare className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">Review Approvals</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="justify-start">
-                <Link to="/admin/jobs">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Job Postings
+              <Button asChild variant="outline" className="justify-start text-left">
+                <Link to="/erp/admin/jobs">
+                  <Briefcase className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">Job Postings</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="justify-start">
-                <Link to="/admin/messages">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Messages
+              <Button asChild variant="outline" className="justify-start text-left">
+                <Link to="/erp/admin/messages">
+                  <Mail className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">Messages</span>
                 </Link>
               </Button>
             </div>
@@ -158,7 +158,7 @@ const AdminDashboardNew = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">Pending Approvals</h2>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/admin/approvals">View All</Link>
+                <Link to="/erp/admin/approvals">View All</Link>
               </Button>
             </div>
             {isLoading ? (
@@ -179,7 +179,7 @@ const AdminDashboardNew = () => {
                       <p className="text-sm text-muted-foreground">{intern.domain}</p>
                     </div>
                     <Button asChild size="sm">
-                      <Link to="/admin/approvals">Review</Link>
+                      <Link to="/erp/admin/approvals">Review</Link>
                     </Button>
                   </div>
                 ))}

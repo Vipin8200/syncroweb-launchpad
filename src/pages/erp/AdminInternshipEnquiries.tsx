@@ -78,14 +78,14 @@ const AdminInternshipEnquiries = () => {
             {enquiries?.map((enquiry) => (
               <Card key={enquiry.id}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{enquiry.full_name}</CardTitle>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <CardTitle className="text-lg truncate">{enquiry.full_name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
                         Applied for: {enquiry.internship_programs?.title} ({enquiry.internship_programs?.department})
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {getStatusBadge(enquiry.status)}
                       <Select
                         value={enquiry.status}
@@ -93,7 +93,7 @@ const AdminInternshipEnquiries = () => {
                           updateStatusMutation.mutate({ id: enquiry.id, status: value })
                         }
                       >
-                        <SelectTrigger className="w-[130px]">
+                        <SelectTrigger className="w-[120px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

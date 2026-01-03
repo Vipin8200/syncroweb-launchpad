@@ -87,14 +87,14 @@ const AdminApplications = () => {
             {applications?.map((app) => (
               <Card key={app.id}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{app.full_name}</CardTitle>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <CardTitle className="text-lg truncate">{app.full_name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
                         Applied for: {app.job_postings?.title} ({app.job_postings?.department})
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {getStatusBadge(app.status)}
                       <Select
                         value={app.status}
@@ -102,7 +102,7 @@ const AdminApplications = () => {
                           updateStatusMutation.mutate({ id: app.id, status: value })
                         }
                       >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[130px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

@@ -9,3 +9,6 @@ verify_jwt = false
 [functions.reset-intern-password]
 verify_jwt = false
 
+[functions.complete-intern-password-change]
+verify_jwt = false
+

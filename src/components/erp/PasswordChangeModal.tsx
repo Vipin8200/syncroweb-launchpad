@@ -85,7 +85,12 @@ const PasswordChangeModal = ({
       // Mark role record as password changed (via backend function due to RLS)
       const { data, error: flagError } = await supabase.functions.invoke(
         completeFunctionName,
-        { body: {} }
+        {
+          body: {},
+          headers: {
+            Authorization: `Bearer ${refreshed.session.access_token}`,
+          },
+        }
       );
 
       // Handle edge function errors - check both error property and response data

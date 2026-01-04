@@ -40,13 +40,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const userId = userData.user.id;
+    console.log("Processing password change for user:", userId);
 
     // Ensure caller is an employee
     const { data: roleRow, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "employee")
+      .in("role", ["employee", "admin"])
       .maybeSingle();
 
     if (roleError) {
@@ -58,12 +59,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
+      console.error("User does not have employee or admin role");
+      return new Response(JSON.stringify({ error: "Forbidden - requires employee or admin role" }), {
         status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
+    
+    console.log("User role verified:", roleRow.role);
 
+    console.log("Updating employee record for user_id:", userId);
+    
     const { data: updatedEmployee, error: updateError } = await supabaseAdmin
       .from("employees")
       .update({
@@ -85,11 +91,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!updatedEmployee) {
+      console.error("Employee record not found for user_id:", userId);
       return new Response(JSON.stringify({ error: "Employee record not found" }), {
         status: 404,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
+
+    console.log("Successfully updated employee:", updatedEmployee.id);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

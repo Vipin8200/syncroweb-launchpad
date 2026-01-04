@@ -15,6 +15,7 @@ interface CreateEmployeeUserRequest {
   tempPassword: string;
   department: string;
   position: string;
+  isPasswordReset?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -74,9 +75,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: CreateEmployeeUserRequest = await req.json();
-    const { employeeId, fullName, personalEmail, companyEmail, tempPassword, department, position } = body;
+    const { employeeId, fullName, personalEmail, companyEmail, tempPassword, department, position, isPasswordReset } = body;
 
-    console.log(`Creating user for employee: ${fullName} (${companyEmail})`);
+    console.log(`${isPasswordReset ? 'Resetting password' : 'Creating user'} for employee: ${fullName} (${companyEmail})`);
 
     // Check if user already exists by email
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
@@ -150,18 +151,25 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Update employee record
+    const updateData: Record<string, any> = {
+      temp_password: tempPassword,
+      password_changed: false,
+      password_reset_required: true,
+    };
+
+    // Only update these fields for new employee creation
+    if (!isPasswordReset) {
+      updateData.user_id = userId;
+      updateData.email = companyEmail;
+      updateData.personal_email = personalEmail;
+      updateData.added_by = callerUserId;
+      updateData.is_active = true;
+      updateData.password_reset_required = false;
+    }
+
     const { error: updateError } = await supabaseAdmin
       .from("employees")
-      .update({
-        user_id: userId,
-        email: companyEmail,
-        personal_email: personalEmail,
-        temp_password: tempPassword,
-        added_by: callerUserId,
-        is_active: true,
-        password_changed: false,
-        password_reset_required: false,
-      })
+      .update(updateData)
       .eq("id", employeeId);
 
     if (updateError) {
@@ -170,10 +178,46 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Employee record updated successfully");
 
-    // Send welcome email
+    // Send email (welcome for new, reset notification for password reset)
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY) {
+    if (RESEND_API_KEY && personalEmail) {
       try {
+        const subject = isPasswordReset 
+          ? "Password Reset - SyncroWeb Technologies" 
+          : "Welcome to SyncroWeb Technologies - Employee Account Details";
+        
+        const htmlContent = isPasswordReset 
+          ? `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4F46E5;">Password Reset</h1>
+              <p>Dear ${fullName},</p>
+              <p>Your password has been reset by an administrator.</p>
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">New Login Credentials</h3>
+                <p><strong>Company Email:</strong> ${companyEmail}</p>
+                <p><strong>New Temporary Password:</strong> ${tempPassword}</p>
+              </div>
+              <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password immediately.</p>
+              <p>Best regards,<br>SyncroWeb Technologies Team</p>
+            </div>
+          `
+          : `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4F46E5;">Welcome to SyncroWeb Technologies!</h1>
+              <p>Dear ${fullName},</p>
+              <p>Your employee account has been created. Welcome to the team!</p>
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Your Login Credentials</h3>
+                <p><strong>Company Email:</strong> ${companyEmail}</p>
+                <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+                <p><strong>Department:</strong> ${department}</p>
+                <p><strong>Position:</strong> ${position}</p>
+              </div>
+              <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
+              <p>Best regards,<br>SyncroWeb Technologies Team</p>
+            </div>
+          `;
+
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -183,23 +227,8 @@ const handler = async (req: Request): Promise<Response> => {
           body: JSON.stringify({
             from: "SyncroWeb <onboarding@resend.dev>",
             to: [personalEmail],
-            subject: "Welcome to SyncroWeb Technologies - Employee Account Details",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #4F46E5;">Welcome to SyncroWeb Technologies!</h1>
-                <p>Dear ${fullName},</p>
-                <p>Your employee account has been created. Welcome to the team!</p>
-                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0;">Your Login Credentials</h3>
-                  <p><strong>Company Email:</strong> ${companyEmail}</p>
-                  <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-                  <p><strong>Department:</strong> ${department}</p>
-                  <p><strong>Position:</strong> ${position}</p>
-                </div>
-                <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
-                <p>Best regards,<br>SyncroWeb Technologies Team</p>
-              </div>
-            `,
+            subject,
+            html: htmlContent,
           }),
         });
 

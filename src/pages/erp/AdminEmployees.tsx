@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserPlus, Search, MoreVertical, Key, Mail, Phone, Building, Briefcase } from "lucide-react";
+import { UserPlus, Search, MoreVertical, Key, Mail, Phone, Building, Briefcase, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ERPLayout from "@/components/erp/ERPLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   Select,
@@ -24,9 +25,20 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -46,6 +58,41 @@ interface Employee {
   temp_password: string | null;
 }
 
+const departments = [
+  "Engineering",
+  "Design",
+  "Marketing",
+  "Sales",
+  "HR",
+  "Operations",
+  "Finance",
+  "Management",
+];
+
+const positions = [
+  "Software Engineer",
+  "Senior Software Engineer",
+  "Lead Developer",
+  "UI/UX Designer",
+  "Product Manager",
+  "Project Manager",
+  "HR Manager",
+  "Marketing Manager",
+  "Sales Executive",
+  "Operations Manager",
+  "Team Lead",
+  "Manager",
+];
+
+const generatePassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  let password = "";
+  for (let i = 0; i < 10; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
+
 const AdminEmployees = () => {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -56,6 +103,18 @@ const AdminEmployees = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    full_name: "",
+    personal_email: "",
+    phone: "",
+    department: "",
+    position: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newPassword, setNewPassword] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -125,6 +184,115 @@ const AdminEmployees = () => {
   const handleViewEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
     setIsViewDialogOpen(true);
+  };
+
+  const handleEditEmployee = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setEditFormData({
+      full_name: employee.full_name,
+      personal_email: employee.personal_email || "",
+      phone: employee.phone || "",
+      department: employee.department,
+      position: employee.position,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteEmployee = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleResetPassword = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setNewPassword(null);
+    setIsResetPasswordDialogOpen(true);
+  };
+
+  const submitEditEmployee = async () => {
+    if (!selectedEmployee) return;
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("employees")
+        .update({
+          full_name: editFormData.full_name,
+          personal_email: editFormData.personal_email || null,
+          phone: editFormData.phone || null,
+          department: editFormData.department,
+          position: editFormData.position,
+        })
+        .eq("id", selectedEmployee.id);
+
+      if (error) throw error;
+      toast.success("Employee updated successfully");
+      setIsEditDialogOpen(false);
+      fetchEmployees();
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      toast.error("Failed to update employee");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmDeleteEmployee = async () => {
+    if (!selectedEmployee) return;
+    setIsSubmitting(true);
+
+    try {
+      // Delete from employees table
+      const { error } = await supabase
+        .from("employees")
+        .delete()
+        .eq("id", selectedEmployee.id);
+
+      if (error) throw error;
+      toast.success("Employee deleted successfully");
+      setIsDeleteDialogOpen(false);
+      fetchEmployees();
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast.error("Failed to delete employee");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmResetPassword = async () => {
+    if (!selectedEmployee) return;
+    setIsSubmitting(true);
+
+    try {
+      const tempPassword = generatePassword();
+
+      // Update password via edge function
+      const { data, error } = await supabase.functions.invoke("create-employee-user", {
+        body: {
+          employeeId: selectedEmployee.id,
+          fullName: selectedEmployee.full_name,
+          personalEmail: selectedEmployee.personal_email,
+          companyEmail: selectedEmployee.email,
+          tempPassword,
+          department: selectedEmployee.department,
+          position: selectedEmployee.position,
+          isPasswordReset: true,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setNewPassword(tempPassword);
+      toast.success("Password reset successfully");
+      fetchEmployees();
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      toast.error("Failed to reset password");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const uniqueDepartments = [...new Set(employees.map((e) => e.department))];
@@ -281,11 +449,28 @@ const AdminEmployees = () => {
                             <DropdownMenuItem onClick={() => handleViewEmployee(employee)}>
                               View Details
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit Details
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleResetPassword(employee)}>
+                              <Key className="h-4 w-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => toggleEmployeeStatus(employee.id, employee.is_active)}
                             >
+                              <RotateCcw className="h-4 w-4 mr-2" />
                               {employee.is_active ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteEmployee(employee)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Employee
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -368,6 +553,148 @@ const AdminEmployees = () => {
                 </div>
               )}
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Employee Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Employee</DialogTitle>
+            <DialogDescription>
+              Update employee information
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit_full_name">Full Name</Label>
+              <Input
+                id="edit_full_name"
+                value={editFormData.full_name}
+                onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_personal_email">Personal Email</Label>
+              <Input
+                id="edit_personal_email"
+                type="email"
+                value={editFormData.personal_email}
+                onChange={(e) => setEditFormData({ ...editFormData, personal_email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_phone">Phone</Label>
+              <Input
+                id="edit_phone"
+                value={editFormData.phone}
+                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_department">Department</Label>
+              <Select
+                value={editFormData.department}
+                onValueChange={(value) => setEditFormData({ ...editFormData, department: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_position">Position</Label>
+              <Select
+                value={editFormData.position}
+                onValueChange={(value) => setEditFormData({ ...editFormData, position: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  {positions.map((pos) => (
+                    <SelectItem key={pos} value={pos}>
+                      {pos}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={submitEditEmployee} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{selectedEmployee?.full_name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteEmployee}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              {newPassword
+                ? "Password has been reset successfully. Share this new password with the employee."
+                : `Reset password for ${selectedEmployee?.full_name}?`}
+            </DialogDescription>
+          </DialogHeader>
+          {newPassword ? (
+            <div className="space-y-4">
+              <div className="bg-secondary p-4 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">New Temporary Password</p>
+                <p className="font-mono text-lg font-semibold">{newPassword}</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                The employee will be required to change this password on their next login.
+              </p>
+              <DialogFooter>
+                <Button onClick={() => setIsResetPasswordDialogOpen(false)}>Done</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsResetPasswordDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={confirmResetPassword} disabled={isSubmitting}>
+                {isSubmitting ? "Resetting..." : "Reset Password"}
+              </Button>
+            </DialogFooter>
           )}
         </DialogContent>
       </Dialog>

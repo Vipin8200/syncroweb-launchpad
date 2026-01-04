@@ -73,6 +73,15 @@ const PasswordChangeModal = ({
 
       if (authError) throw authError;
 
+      // IMPORTANT: password updates can invalidate the current access token.
+      // Refresh session so the backend function call has a valid JWT.
+      const { data: refreshed, error: refreshError } =
+        await supabase.auth.refreshSession();
+
+      if (refreshError || !refreshed?.session?.access_token) {
+        throw new Error("Session refresh failed. Please sign in again.");
+      }
+
       // Mark role record as password changed (via backend function due to RLS)
       const { data, error: flagError } = await supabase.functions.invoke(
         completeFunctionName,
@@ -83,7 +92,7 @@ const PasswordChangeModal = ({
       if (flagError) {
         throw new Error(flagError.message || "Failed to update password flags");
       }
-      
+
       if (data?.error) {
         throw new Error(data.error);
       }

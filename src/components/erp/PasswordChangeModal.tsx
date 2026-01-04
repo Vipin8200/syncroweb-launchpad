@@ -74,12 +74,19 @@ const PasswordChangeModal = ({
       if (authError) throw authError;
 
       // Mark role record as password changed (via backend function due to RLS)
-      const { error: flagError } = await supabase.functions.invoke(
+      const { data, error: flagError } = await supabase.functions.invoke(
         completeFunctionName,
         { body: {} }
       );
 
-      if (flagError) throw flagError;
+      // Handle edge function errors - check both error property and response data
+      if (flagError) {
+        throw new Error(flagError.message || "Failed to update password flags");
+      }
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       // IMPORTANT: keep modal open until parent refresh completes to avoid flicker
       await onSuccess();

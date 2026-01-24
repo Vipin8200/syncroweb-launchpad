@@ -54,6 +54,9 @@ interface Intern {
   end_date: string | null;
   created_at: string;
   user_id: string | null;
+  added_by: string;
+  added_by_name?: string;
+  added_by_role?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -113,7 +116,41 @@ const AdminInterns = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setInterns(data || []);
+
+      // Fetch creator details for each intern
+      const internsWithCreator = await Promise.all(
+        (data || []).map(async (intern) => {
+          // Check if added_by is an employee
+          const { data: employee } = await supabase
+            .from("employees")
+            .select("full_name")
+            .eq("user_id", intern.added_by)
+            .maybeSingle();
+
+          if (employee) {
+            return {
+              ...intern,
+              added_by_name: employee.full_name,
+              added_by_role: "Employee",
+            };
+          }
+
+          // Check if added_by is an admin (from profiles)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", intern.added_by)
+            .maybeSingle();
+
+          return {
+            ...intern,
+            added_by_name: profile?.full_name || "Unknown",
+            added_by_role: "Admin",
+          };
+        })
+      );
+
+      setInterns(internsWithCreator);
     } catch (error) {
       console.error("Error fetching interns:", error);
     } finally {
@@ -341,6 +378,9 @@ const AdminInterns = () => {
                       Start Date
                     </th>
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
+                      Created By
+                    </th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">
                       Status
                     </th>
                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">
@@ -370,6 +410,12 @@ const AdminInterns = () => {
                       <td className="p-4 text-muted-foreground">{intern.domain}</td>
                       <td className="p-4 text-muted-foreground">{intern.duration}</td>
                       <td className="p-4 text-muted-foreground">{formatDate(intern.start_date)}</td>
+                      <td className="p-4">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{intern.added_by_name || "Unknown"}</p>
+                          <p className="text-xs text-muted-foreground">{intern.added_by_role}</p>
+                        </div>
+                      </td>
                       <td className="p-4">
                         <span
                           className={`px-2 py-1 text-xs rounded-full capitalize ${

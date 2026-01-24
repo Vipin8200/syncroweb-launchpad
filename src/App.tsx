@@ -28,6 +28,7 @@ import AdminJobPostings from "./pages/erp/AdminJobPostings";
 import AdminApplications from "./pages/erp/AdminApplications";
 import AdminMessages from "./pages/erp/AdminMessages";
 import AdminInternshipEnquiries from "./pages/erp/AdminInternshipEnquiries";
+import AdminProfile from "./pages/erp/AdminProfile";
 import EmployeeDashboard from "./pages/erp/EmployeeDashboard";
 import EmployeeAddIntern from "./pages/erp/EmployeeAddIntern";
 import EmployeeInterns from "./pages/erp/EmployeeInterns";
@@ -36,6 +37,7 @@ import InternDashboard from "./pages/erp/InternDashboard";
 import InternTasks from "./pages/erp/InternTasks";
 import InternProfile from "./pages/erp/InternProfile";
 import Notifications from "./pages/erp/Notifications";
+import TeamChat from "./pages/erp/TeamChat";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +62,7 @@ const App = () => (
 
               {/* Admin ERP Routes */}
               <Route path="/erp/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/erp/admin/profile" element={<AdminProfile />} />
               <Route path="/erp/admin/employees" element={<AdminEmployees />} />
               <Route path="/erp/admin/add-employee" element={<AdminAddEmployee />} />
               <Route path="/erp/admin/approvals" element={<AdminApprovals />} />
@@ -72,6 +75,7 @@ const App = () => (
               <Route path="/erp/admin/messages" element={<AdminMessages />} />
               <Route path="/erp/admin/internship-enquiries" element={<AdminInternshipEnquiries />} />
               <Route path="/erp/admin/notifications" element={<Notifications />} />
+              <Route path="/erp/admin/chat" element={<TeamChat />} />
 
               {/* Employee ERP Routes */}
               <Route path="/erp/employee/dashboard" element={<EmployeeDashboard />} />
@@ -79,12 +83,14 @@ const App = () => (
               <Route path="/erp/employee/interns" element={<EmployeeInterns />} />
               <Route path="/erp/employee/tasks" element={<EmployeeTasks />} />
               <Route path="/erp/employee/notifications" element={<Notifications />} />
+              <Route path="/erp/employee/chat" element={<TeamChat />} />
 
               {/* Intern ERP Routes */}
               <Route path="/erp/intern/dashboard" element={<InternDashboard />} />
               <Route path="/erp/intern/tasks" element={<InternTasks />} />
               <Route path="/erp/intern/profile" element={<InternProfile />} />
               <Route path="/erp/intern/notifications" element={<Notifications />} />
+              <Route path="/erp/intern/chat" element={<TeamChat />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

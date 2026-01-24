@@ -10,6 +10,8 @@ import {
   Mail,
   UserPlus,
   ClipboardList,
+  MessageCircle,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -30,10 +32,12 @@ interface ERPSidebarProps {
 
 const adminNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/erp/admin/dashboard" },
+  { label: "Profile", icon: User, path: "/erp/admin/profile" },
   { label: "Employees", icon: Users, path: "/erp/admin/employees" },
   { label: "Interns", icon: GraduationCap, path: "/erp/admin/interns" },
   { label: "Tasks", icon: ClipboardList, path: "/erp/admin/tasks" },
   { label: "Approvals", icon: CheckSquare, path: "/erp/admin/approvals" },
+  { label: "Team Chat", icon: MessageCircle, path: "/erp/admin/chat" },
   { label: "Internship Programs", icon: Briefcase, path: "/erp/admin/internship-programs" },
   { label: "Job Postings", icon: Briefcase, path: "/erp/admin/jobs" },
   { label: "Applications", icon: ClipboardList, path: "/erp/admin/applications" },
@@ -46,11 +50,13 @@ const employeeNav: NavItem[] = [
   { label: "Add Intern", icon: UserPlus, path: "/erp/employee/add-intern" },
   { label: "My Interns", icon: GraduationCap, path: "/erp/employee/interns" },
   { label: "Tasks", icon: CheckSquare, path: "/erp/employee/tasks" },
+  { label: "Team Chat", icon: MessageCircle, path: "/erp/employee/chat" },
 ];
 
 const internNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/erp/intern/dashboard" },
   { label: "My Tasks", icon: CheckSquare, path: "/erp/intern/tasks" },
+  { label: "Team Chat", icon: MessageCircle, path: "/erp/intern/chat" },
   { label: "Profile", icon: Settings, path: "/erp/intern/profile" },
 ];
 

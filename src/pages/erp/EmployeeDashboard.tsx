@@ -58,7 +58,8 @@ const EmployeeDashboard = () => {
   };
 
   const handlePasswordChangeSuccess = async () => {
-    // Re-fetch DB flags; modal will close only when flags say it's completed.
+    // Close modal immediately to prevent flicker, then refresh data
+    setShowPasswordModal(false);
     await fetchStats();
   };
 

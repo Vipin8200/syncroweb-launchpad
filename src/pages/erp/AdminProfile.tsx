@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { User, Mail, Lock, Eye, EyeOff, Save } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User, Mail, Lock, Eye, EyeOff, Save, Camera } from "lucide-react";
 import ERPLayout from "@/components/erp/ERPLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +20,9 @@ const AdminProfile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [profileData, setProfileData] = useState({
     full_name: "",
@@ -41,7 +45,7 @@ const AdminProfile = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, email")
+        .select("full_name, email, avatar_url")
         .eq("id", session.user.id)
         .single();
 
@@ -51,11 +55,31 @@ const AdminProfile = () => {
         full_name: data?.full_name || "",
         email: data?.email || session.user.email || "",
       });
+      setAvatarUrl(data?.avatar_url || null);
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session?.user?.id) return;
+    setIsUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${session.user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const avatarWithCache = `${publicUrl}?t=${Date.now()}`;
+      await supabase.from("profiles").update({ avatar_url: avatarWithCache }).eq("id", session.user.id);
+      setAvatarUrl(avatarWithCache);
+      toast({ title: "Avatar Updated", description: "Your profile photo has been updated." });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to upload avatar", variant: "destructive" });
+    } finally { setIsUploadingAvatar(false); }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -187,14 +211,31 @@ const AdminProfile = () => {
   return (
     <ERPLayout requiredRole="admin">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <User className="w-6 h-6" />
-            My Profile
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Manage your account settings
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="relative cursor-pointer group" onClick={() => avatarInputRef.current?.click()}>
+            <Avatar className="w-20 h-20">
+              {avatarUrl && <AvatarImage src={avatarUrl} />}
+              <AvatarFallback className="text-xl bg-primary/10 text-primary">
+                {profileData.full_name ? profileData.full_name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "AD"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition">
+              {isUploadingAvatar ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
+            </div>
+            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              My Profile
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Manage your account settings
+            </p>
+          </div>
         </div>
 
         {/* Profile Information */}

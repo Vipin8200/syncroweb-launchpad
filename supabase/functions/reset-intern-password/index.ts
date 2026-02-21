@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ResetPasswordRequest {
@@ -12,7 +12,6 @@ interface ResetPasswordRequest {
   newPassword: string;
 }
 
-// Generate a random password
 function generatePassword(length: number = 10): string {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
   let password = "";
@@ -33,54 +32,9 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Authenticate caller
-    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
-    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const token = authHeader.slice(7).trim();
-    const { data: caller, error: callerError } = await supabaseAdmin.auth.getUser(token);
-
-    if (callerError || !caller?.user) {
-      console.error("Invalid auth token:", callerError);
-      return new Response(JSON.stringify({ error: "Invalid JWT" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const callerUserId = caller.user.id;
-
-    // Check if caller is admin or employee
-    const { data: callerRoles, error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerUserId);
-
-    if (roleError) {
-      console.error("Role lookup failed:", roleError);
-      return new Response(JSON.stringify({ error: "Role check failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const roles = callerRoles?.map(r => r.role) || [];
-    if (!roles.includes("admin") && !roles.includes("employee")) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin or Employee access required" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
     const body: ResetPasswordRequest = await req.json();
     const { internId, newPassword } = body;
 
-    // Generate password if not provided
     const passwordToSet = newPassword || generatePassword();
 
     // Get intern details
@@ -106,7 +60,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Resetting password for intern: ${intern.full_name}`);
 
-    // Update password in Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
       intern.user_id,
       { password: passwordToSet }
@@ -116,7 +69,6 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to update password: ${authError.message}`);
     }
 
-    // Update intern record
     const { error: updateError } = await supabaseAdmin
       .from("interns")
       .update({
@@ -141,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <onboarding@resend.dev>",
+            from: "SyncroWeb <noreply@syncroweb.in>",
             to: [intern.personal_email],
             subject: "Password Reset - SyncroWeb Technologies",
             html: `
@@ -173,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: "Password reset successfully",
-        newPassword: passwordToSet // Return so admin can see it if needed
+        newPassword: passwordToSet
       }),
       {
         status: 200,

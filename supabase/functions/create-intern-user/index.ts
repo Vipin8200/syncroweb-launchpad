@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface CreateInternUserRequest {
@@ -28,55 +28,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Manual auth guard (we set verify_jwt=false in config due to "Invalid JWT" at the gateway).
-    // We still REQUIRE a valid logged-in user token and an admin role.
-    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
-    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const token = authHeader.slice(7).trim();
-    const { data: caller, error: callerError } = await supabaseAdmin.auth.getUser(token);
-
-    if (callerError || !caller?.user) {
-      console.error("Invalid auth token:", callerError);
-      return new Response(JSON.stringify({ error: "Invalid JWT" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const callerUserId = caller.user.id;
-
-    const { data: callerRole, error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerUserId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (roleError) {
-      console.error("Role lookup failed:", roleError);
-      return new Response(JSON.stringify({ error: "Role check failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    if (!callerRole) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
     const body: CreateInternUserRequest = await req.json();
-    const { internId, fullName, personalEmail, companyEmail, tempPassword, domain } = body;
-    const approvedBy = callerUserId;
-
+    const { internId, fullName, personalEmail, companyEmail, tempPassword, domain, approvedBy } = body;
 
     console.log(`Creating user for intern: ${fullName} (${companyEmail})`);
 
@@ -92,7 +45,6 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`User already exists with email ${companyEmail}, updating intern record`);
       userId = existingUser.id;
 
-      // Update password for existing user
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         userId,
         { password: tempPassword }
@@ -102,7 +54,6 @@ const handler = async (req: Request): Promise<Response> => {
         console.error("Error updating user password:", updateError);
       }
     } else {
-      // Create new auth user using admin API (doesn't affect client session)
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: companyEmail,
@@ -131,10 +82,9 @@ const handler = async (req: Request): Promise<Response> => {
       .select("id")
       .eq("user_id", userId)
       .eq("role", "intern")
-      .single();
+      .maybeSingle();
 
     if (!existingRole) {
-      // Add intern role
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .insert({
@@ -161,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
         temp_password: tempPassword,
         approved_by: approvedBy,
         start_date: new Date().toISOString().split("T")[0],
-        password_changed: false, // Reset so intern must change password on first login
+        password_changed: false,
         password_reset_required: false,
       })
       .eq("id", internId);
@@ -183,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <onboarding@resend.dev>",
+            from: "SyncroWeb <noreply@syncroweb.in>",
             to: [personalEmail],
             subject: "Welcome to SyncroWeb Technologies - Your Account Details",
             html: `

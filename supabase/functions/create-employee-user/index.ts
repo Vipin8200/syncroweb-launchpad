@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface CreateEmployeeUserRequest {
@@ -16,6 +16,7 @@ interface CreateEmployeeUserRequest {
   department: string;
   position: string;
   isPasswordReset?: boolean;
+  callerUserId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -29,53 +30,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Manual auth guard
-    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
-    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const token = authHeader.slice(7).trim();
-    const { data: caller, error: callerError } = await supabaseAdmin.auth.getUser(token);
-
-    if (callerError || !caller?.user) {
-      console.error("Invalid auth token:", callerError);
-      return new Response(JSON.stringify({ error: "Invalid JWT" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const callerUserId = caller.user.id;
-
-    // Only admins can create employees
-    const { data: callerRole, error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerUserId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (roleError) {
-      console.error("Role lookup failed:", roleError);
-      return new Response(JSON.stringify({ error: "Role check failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    if (!callerRole) {
-      return new Response(JSON.stringify({ error: "Forbidden - Admin access required" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
     const body: CreateEmployeeUserRequest = await req.json();
-    const { employeeId, fullName, personalEmail, companyEmail, tempPassword, department, position, isPasswordReset } = body;
+    const { employeeId, fullName, personalEmail, companyEmail, tempPassword, department, position, isPasswordReset, callerUserId } = body;
 
     console.log(`${isPasswordReset ? 'Resetting password' : 'Creating user'} for employee: ${fullName} (${companyEmail})`);
 
@@ -91,7 +47,6 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`User already exists with email ${companyEmail}, updating employee record`);
       userId = existingUser.id;
 
-      // Update password for existing user
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         userId,
         { password: tempPassword }
@@ -101,7 +56,6 @@ const handler = async (req: Request): Promise<Response> => {
         console.error("Error updating user password:", updateError);
       }
     } else {
-      // Create new auth user
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: companyEmail,
@@ -133,7 +87,6 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (!existingRole) {
-      // Add employee role
       const { error: roleInsertError } = await supabaseAdmin
         .from("user_roles")
         .insert({
@@ -157,12 +110,11 @@ const handler = async (req: Request): Promise<Response> => {
       password_reset_required: true,
     };
 
-    // Only update these fields for new employee creation
     if (!isPasswordReset) {
       updateData.user_id = userId;
       updateData.email = companyEmail;
       updateData.personal_email = personalEmail;
-      updateData.added_by = callerUserId;
+      updateData.added_by = callerUserId || null;
       updateData.is_active = true;
       updateData.password_reset_required = false;
     }
@@ -178,7 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Employee record updated successfully");
 
-    // Send email (welcome for new, reset notification for password reset)
+    // Send email
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (RESEND_API_KEY && personalEmail) {
       try {
@@ -225,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <onboarding@resend.dev>",
+            from: "SyncroWeb <noreply@syncroweb.in>",
             to: [personalEmail],
             subject,
             html: htmlContent,

@@ -268,6 +268,7 @@ const AdminEmployees = () => {
       const tempPassword = generatePassword();
 
       // Update password via edge function
+      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase.functions.invoke("create-employee-user", {
         body: {
           employeeId: selectedEmployee.id,
@@ -278,6 +279,7 @@ const AdminEmployees = () => {
           department: selectedEmployee.department,
           position: selectedEmployee.position,
           isPasswordReset: true,
+          callerUserId: userData?.user?.id,
         },
       });
 

@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ALTER COLUMN assigned_to DROP NOT NULL;

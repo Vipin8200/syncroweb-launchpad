@@ -102,6 +102,7 @@ const AdminAddEmployee = () => {
           tempPassword,
           department: data.department,
           position: data.position,
+          callerUserId: userData.user.id,
         },
       });
 

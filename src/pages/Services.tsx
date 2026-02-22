@@ -5,8 +5,7 @@ import {
   Smartphone,
   Palette,
   Code2,
-  Database,
-  ShoppingCart,
+  Lightbulb,
   Wrench,
   ArrowRight,
   Check,
@@ -17,23 +16,36 @@ import { Button } from "@/components/ui/button";
 
 const services = [
   {
-    icon: Globe,
-    title: "Web Development",
+    icon: Code2,
+    title: "Custom Software Development",
     description:
-      "High-performance, responsive websites built with modern technologies for optimal user experience.",
+      "Tailored solutions designed to meet your unique business needs, ensuring performance, scalability, and long-term success.",
+    features: [
+      "Business-specific Solutions",
+      "API Integration",
+      "Scalable Architecture",
+      "Full Documentation",
+    ],
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Globe,
+    title: "Web Development & Web Application Solutions",
+    description:
+      "Responsive websites and powerful web applications that boost engagement and drive business growth.",
     features: [
       "Responsive Design",
       "SEO Optimized",
       "Fast Loading",
       "Cross-browser Compatible",
     ],
-    color: "from-blue-500 to-cyan-500",
+    color: "from-green-500 to-emerald-500",
   },
   {
     icon: Smartphone,
     title: "Mobile App Development",
     description:
-      "Native and cross-platform mobile applications that deliver seamless experiences across devices.",
+      "Feature-rich Android and iOS apps that deliver meaningful experiences and help scale your business.",
     features: [
       "iOS & Android",
       "Cross-platform",
@@ -44,9 +56,9 @@ const services = [
   },
   {
     icon: Palette,
-    title: "UI/UX Design",
+    title: "UI / UX Design",
     description:
-      "User-centered design that combines aesthetics with functionality for intuitive interfaces.",
+      "User-centric designs that engage audiences and elevate your brand.",
     features: [
       "User Research",
       "Wireframing",
@@ -56,49 +68,23 @@ const services = [
     color: "from-orange-500 to-red-500",
   },
   {
-    icon: Code2,
-    title: "Custom Software Development",
+    icon: Lightbulb,
+    title: "IT Consulting & Digital Strategy",
     description:
-      "Tailored software solutions designed to address your unique business challenges.",
+      "Strategic guidance that helps you adopt the right tech solutions for sustainable growth and digital transformation.",
     features: [
-      "Custom Solutions",
-      "API Integration",
-      "Scalable Architecture",
-      "Documentation",
-    ],
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    icon: Database,
-    title: "ERP / CRM Solutions",
-    description:
-      "Enterprise resource planning and customer relationship management systems for streamlined operations.",
-    features: [
-      "Process Automation",
-      "Data Analytics",
-      "Custom Workflows",
-      "Integration Ready",
+      "Technology Assessment",
+      "Digital Transformation",
+      "Process Optimization",
+      "Strategic Roadmaps",
     ],
     color: "from-indigo-500 to-violet-500",
   },
   {
-    icon: ShoppingCart,
-    title: "E-commerce Development",
-    description:
-      "Scalable online stores with secure payment integration and inventory management.",
-    features: [
-      "Payment Gateway",
-      "Inventory Management",
-      "Order Tracking",
-      "Multi-vendor Support",
-    ],
-    color: "from-pink-500 to-rose-500",
-  },
-  {
     icon: Wrench,
-    title: "Maintenance & Support",
+    title: "Enterprise Solutions & Support",
     description:
-      "Ongoing technical support and maintenance to keep your systems running smoothly.",
+      "End-to-end support and scalable digital systems built for performance and reliability.",
     features: [
       "24/7 Monitoring",
       "Bug Fixes",

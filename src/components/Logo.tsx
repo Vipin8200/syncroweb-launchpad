@@ -22,7 +22,7 @@ const Logo = ({ className = "", size = "md", showText = true }: LogoProps) => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Abstract S / Sync Logo */}
+      {/* Abstract K / Tech Logo */}
       <svg
         width={icon}
         height={icon}
@@ -42,117 +42,90 @@ const Logo = ({ className = "", size = "md", showText = true }: LogoProps) => {
           </linearGradient>
         </defs>
         
-        {/* Abstract interconnected S shape with nodes */}
-        <motion.circle
-          cx="14"
-          cy="14"
-          r="5"
-          fill="url(#logoGradient)"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-        />
-        <motion.circle
-          cx="28"
-          cy="28"
-          r="6"
-          fill="url(#logoGradient)"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        />
-        <motion.circle
-          cx="42"
-          cy="14"
-          r="5"
-          fill="url(#logoGradient2)"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
-        />
-        <motion.circle
-          cx="42"
-          cy="42"
-          r="5"
-          fill="url(#logoGradient)"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.25, duration: 0.4 }}
-        />
-        <motion.circle
-          cx="14"
-          cy="42"
-          r="5"
-          fill="url(#logoGradient2)"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        />
-        
-        {/* Connecting lines - S pattern */}
+        {/* Abstract K shape with connected nodes */}
         <motion.path
-          d="M14 19 L14 37"
+          d="M14 8 L14 48"
           stroke="url(#logoGradient)"
-          strokeWidth="2.5"
+          strokeWidth="4"
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
         />
         <motion.path
-          d="M19 14 L37 14"
+          d="M14 28 L38 10"
           stroke="url(#logoGradient)"
-          strokeWidth="2.5"
+          strokeWidth="4"
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         />
         <motion.path
-          d="M42 19 L42 37"
+          d="M14 28 L38 46"
           stroke="url(#logoGradient2)"
-          strokeWidth="2.5"
+          strokeWidth="4"
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         />
-        <motion.path
-          d="M19 42 L37 42"
-          stroke="url(#logoGradient2)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ delay: 0.55, duration: 0.5 }}
+        
+        {/* Nodes */}
+        <motion.circle
+          cx="14" cy="8" r="4"
+          fill="url(#logoGradient)"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
         />
-        <motion.path
-          d="M18 18 L23 23"
-          stroke="url(#logoGradient)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
+        <motion.circle
+          cx="14" cy="48" r="4"
+          fill="url(#logoGradient2)"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.25, duration: 0.3 }}
         />
-        <motion.path
-          d="M33 33 L38 38"
-          stroke="url(#logoGradient)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ delay: 0.65, duration: 0.4 }}
+        <motion.circle
+          cx="38" cy="10" r="5"
+          fill="url(#logoGradient)"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+        />
+        <motion.circle
+          cx="14" cy="28" r="5"
+          fill="url(#logoGradient)"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.35, duration: 0.3 }}
+        />
+        <motion.circle
+          cx="38" cy="46" r="5"
+          fill="url(#logoGradient2)"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.55, duration: 0.3 }}
+        />
+        
+        {/* Small accent dots */}
+        <motion.circle
+          cx="44" cy="28" r="3"
+          fill="url(#logoGradient)"
+          opacity="0.5"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.3 }}
         />
       </svg>
 
       {showText && (
         <div className="flex flex-col">
           <span className={`font-bold ${text} tracking-tight text-foreground`}>
-            Syncro<span className="gradient-text">Web</span>
+            Karmel<span className="gradient-text">Infotech</span>
           </span>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-            Technologies LLP
+          <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
+            & Software Solution LLP
           </span>
         </div>
       )}

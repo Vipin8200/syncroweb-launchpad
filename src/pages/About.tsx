@@ -53,8 +53,9 @@ const About = () => {
               We Build <span className="gradient-text">Digital Excellence</span>
             </h1>
             <p className="text-body text-lg md:text-xl">
-              SyncroWeb Solutions is a vision-driven IT solutions company focused on 
-              delivering quality, scalability, and long-term value to modern businesses.
+              At Karmel Infotech, we empower businesses through intelligent digital solutions. 
+              With a passion for technology and a focus on innovation, we deliver high-performance 
+              software that drives results and accelerates growth.
             </p>
           </motion.div>
         </div>
@@ -74,15 +75,14 @@ const About = () => {
                 Our Story
               </h2>
               <p className="text-body text-lg mb-6 leading-relaxed">
-                Founded with a vision to bridge the gap between innovative technology 
-                and business success, SyncroWeb Solutions has grown into a trusted 
+                Founded with a vision to transform businesses through intelligent digital solutions, 
+                Karmel Infotech & Software Solution LLP has grown into a trusted 
                 partner for startups and enterprises alike.
               </p>
               <p className="text-body text-lg mb-8 leading-relaxed">
-                As an LLP-ready professional brand, we bring process-driven delivery 
-                and transparent communication to every project. Our commitment is to 
-                create solutions that not only meet today's needs but anticipate 
-                tomorrow's challenges.
+                We specialize in custom software development, robust web and mobile applications, 
+                and comprehensive IT consulting services. Our commitment is to create solutions 
+                that not only meet today's needs but anticipate tomorrow's challenges.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -141,7 +141,7 @@ const About = () => {
             className="text-center max-w-3xl mx-auto mb-16"
           >
             <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-              Our Values
+              Why Choose Us
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-heading">
               What <span className="gradient-text">Drives Us</span>

@@ -65,11 +65,11 @@ const Contact = () => {
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-heading">
               Let's Build Something{" "}
-              <span className="gradient-text">Powerful Together</span>
+              <span className="gradient-text">Exceptional Together</span>
             </h1>
             <p className="text-body text-lg md:text-xl">
-              Ready to transform your digital presence? Share your vision with us
-              and let's create something extraordinary.
+              Ready to start your project? Get in touch with us today to discuss 
+              your vision and let's build something exceptional together.
             </p>
           </motion.div>
         </div>
@@ -196,7 +196,7 @@ const Contact = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Email us at</p>
                     <p className="text-foreground font-medium">
-                      hello@syncroweb.tech
+                      info@karmelinfotech.com
                     </p>
                   </div>
                 </div>
@@ -208,7 +208,7 @@ const Contact = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Call us at</p>
                     <p className="text-foreground font-medium">
-                      +91 (XXX) XXX-XXXX
+                      +91 98765 43210
                     </p>
                   </div>
                 </div>

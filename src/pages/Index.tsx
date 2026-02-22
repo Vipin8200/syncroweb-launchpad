@@ -20,8 +20,7 @@ import {
   Smartphone,
   Palette,
   Code2,
-  Database,
-  ShoppingCart,
+  Lightbulb,
   Wrench,
 } from "lucide-react";
 
@@ -37,12 +36,12 @@ const technologies = [
 ];
 
 const services = [
-  { icon: Globe, title: "Web Development", color: "from-blue-500 to-cyan-500" },
-  { icon: Smartphone, title: "Mobile Apps", color: "from-purple-500 to-pink-500" },
-  { icon: Palette, title: "UI/UX Design", color: "from-orange-500 to-red-500" },
-  { icon: Code2, title: "Custom Software", color: "from-green-500 to-emerald-500" },
-  { icon: Database, title: "ERP / CRM", color: "from-indigo-500 to-violet-500" },
-  { icon: ShoppingCart, title: "E-commerce", color: "from-pink-500 to-rose-500" },
+  { icon: Code2, title: "Custom Software Development", color: "from-blue-500 to-cyan-500" },
+  { icon: Globe, title: "Web Development & Web Apps", color: "from-green-500 to-emerald-500" },
+  { icon: Smartphone, title: "Mobile App Development", color: "from-purple-500 to-pink-500" },
+  { icon: Palette, title: "UI / UX Design", color: "from-orange-500 to-red-500" },
+  { icon: Lightbulb, title: "IT Consulting & Digital Strategy", color: "from-indigo-500 to-violet-500" },
+  { icon: Wrench, title: "Enterprise Solutions & Support", color: "from-teal-500 to-cyan-500" },
 ];
 
 const Index = () => {
@@ -64,7 +63,7 @@ const Index = () => {
             >
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                IT Services & Digital Solutions
+                Custom Software & IT Services
               </span>
             </motion.div>
 
@@ -74,9 +73,9 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 text-heading"
             >
-              Building Digital
+              Transforming Ideas Into
               <br />
-              <span className="gradient-text">Experiences That Scale</span>
+              <span className="gradient-text">Powerful Digital Solutions</span>
             </motion.h1>
 
             <motion.p
@@ -85,8 +84,9 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-lg md:text-xl text-body max-w-2xl mx-auto mb-10"
             >
-              We design and develop high-performance websites, applications, and digital 
-              systems tailored for modern businesses.
+              Karmel Infotech & Software Solution LLP is a leading IT services partner 
+              dedicated to helping businesses thrive in the digital world with custom software, 
+              robust web & mobile applications, and comprehensive IT consulting.
             </motion.p>
 
             <motion.div
@@ -101,7 +101,7 @@ const Index = () => {
                 className="bg-primary hover:bg-primary-hover transition-all px-8 py-6 text-lg glow-primary"
               >
                 <Link to="/contact">
-                  Get a Quote
+                  Contact Us Today
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -261,7 +261,7 @@ const Index = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-cyan/5" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-heading">
-                Ready to Build Something <span className="gradient-text">Amazing?</span>
+                Ready to Build Your <span className="gradient-text">Digital Solution?</span>
               </h2>
               <p className="text-body text-lg max-w-2xl mx-auto mb-8">
                 Let's discuss your project and create digital solutions that drive real business results.
@@ -272,7 +272,7 @@ const Index = () => {
                 className="bg-primary hover:bg-primary-hover glow-primary"
               >
                 <Link to="/contact">
-                  Start Your Project
+                  Let's Build Together
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>

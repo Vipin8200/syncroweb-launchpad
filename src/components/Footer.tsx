@@ -40,8 +40,8 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-4 lg:col-span-2">
             <Logo className="mb-4" />
             <p className="text-body text-sm max-w-sm mb-6">
-              Transforming businesses through innovative digital solutions. 
-              We build scalable, high-performance applications that drive growth.
+            Professional custom software development, web & mobile apps, 
+            IT consulting and digital solutions designed to help businesses grow digitally.
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
@@ -114,7 +114,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} SyncroWeb Technologies LLP. All rights reserved.
+            © {currentYear} Karmel Infotech & Software Solution LLP. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Built with ❤️ in India

@@ -122,9 +122,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Intern record updated successfully");
 
-    // Send welcome email
+    // Send welcome email to personal email
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY) {
+    if (RESEND_API_KEY && personalEmail) {
       try {
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -133,12 +133,12 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <noreply@syncroweb.in>",
+            from: "Karmel Infotech <noreply@karmelinfotech.com>",
             to: [personalEmail],
-            subject: "Welcome to SyncroWeb Technologies - Your Account Details",
+            subject: "Welcome to Karmel Infotech - Your Account Details",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #4F46E5;">Welcome to SyncroWeb Technologies!</h1>
+                <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
                 <p>Dear ${fullName},</p>
                 <p>Congratulations! Your internship application has been approved. We're excited to have you join our team.</p>
                 <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -147,22 +147,28 @@ const handler = async (req: Request): Promise<Response> => {
                   <p><strong>Temporary Password:</strong> ${tempPassword}</p>
                   <p><strong>Domain:</strong> ${domain}</p>
                 </div>
-                <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
-                <p>Best regards,<br>SyncroWeb Technologies Team</p>
+                <p>Please login and change your password after your first login.</p>
+                <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
               </div>
             `,
           }),
         });
 
         const emailData = await emailResponse.json();
-        console.log("Email sent:", emailData);
+        console.log("Email sent:", JSON.stringify(emailData));
+        
+        if (!emailResponse.ok) {
+          console.error("Email API error:", emailData);
+        }
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }
+    } else {
+      console.log("Skipping email: RESEND_API_KEY=" + (!!RESEND_API_KEY) + ", personalEmail=" + personalEmail);
     }
 
     return new Response(
-      JSON.stringify({ success: true, userId }),
+      JSON.stringify({ success: true, userId, companyEmail, tempPassword }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

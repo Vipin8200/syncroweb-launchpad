@@ -24,17 +24,11 @@ interface NotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
     const { type, recipientEmail, recipientName, data }: NotificationRequest = await req.json();
 
     let subject = "";
@@ -42,10 +36,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     switch (type) {
       case "intern_approved":
-        subject = "Welcome to SyncroWeb Technologies - Your Account Details";
+        subject = "Welcome to Karmel Infotech - Your Account Details";
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #4F46E5;">Welcome to SyncroWeb Technologies!</h1>
+            <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
             <p>Dear ${recipientName},</p>
             <p>Congratulations! Your internship application has been approved. We're excited to have you join our team.</p>
             <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -54,22 +48,22 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Temporary Password:</strong> ${data.tempPassword}</p>
               <p><strong>Domain:</strong> ${data.domain}</p>
             </div>
-            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
-            <p>Best regards,<br>SyncroWeb Technologies Team</p>
+            <p>Please login and change your password after your first login.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
           </div>
         `;
         break;
 
       case "intern_rejected":
-        subject = "SyncroWeb Technologies - Application Update";
+        subject = "Karmel Infotech - Application Update";
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h1 style="color: #4F46E5;">Application Update</h1>
             <p>Dear ${recipientName},</p>
-            <p>Thank you for your interest in the internship position at SyncroWeb Technologies.</p>
+            <p>Thank you for your interest in the internship position at Karmel Infotech.</p>
             <p>After careful review, we regret to inform you that we are unable to proceed with your application at this time.</p>
             <p>We encourage you to apply again in the future as new opportunities arise.</p>
-            <p>Best regards,<br>SyncroWeb Technologies Team</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
           </div>
         `;
         break;
@@ -84,8 +78,8 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0;">${data.taskTitle}</h3>
             </div>
-            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> to view the full details and update your progress.</p>
-            <p>Best regards,<br>SyncroWeb Technologies Team</p>
+            <p>Please login to view the full details and update your progress.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
           </div>
         `;
         break;
@@ -101,8 +95,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Name:</strong> ${data.internName}</p>
               <p><strong>Domain:</strong> ${data.domain}</p>
             </div>
-            <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> to review and approve or reject this intern.</p>
-            <p>Best regards,<br>SyncroWeb Technologies System</p>
+            <p>Please login to review and approve or reject this intern.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
           </div>
         `;
         break;
@@ -117,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "SyncroWeb <onboarding@resend.dev>",
+        from: "Karmel Infotech <noreply@karmelinfotech.com>",
         to: [recipientEmail],
         subject,
         html,

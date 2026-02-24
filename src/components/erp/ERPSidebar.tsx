@@ -42,7 +42,6 @@ const adminNav: NavItem[] = [
   { label: "Job Postings", icon: Briefcase, path: "/erp/admin/jobs" },
   { label: "Applications", icon: ClipboardList, path: "/erp/admin/applications" },
   { label: "Internship Enquiries", icon: Mail, path: "/erp/admin/internship-enquiries" },
-  { label: "Messages", icon: Mail, path: "/erp/admin/messages" },
 ];
 
 const employeeNav: NavItem[] = [

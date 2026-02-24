@@ -57,9 +57,9 @@ const AdminApprovals = () => {
     const cleanName = name.toLowerCase().replace(/[^a-z\s]/g, "").trim();
     const parts = cleanName.split(" ");
     if (parts.length >= 2) {
-      return `${parts[0]}${parts[parts.length - 1]}@syncroweb.in`;
+      return `${parts[0]}.${parts[parts.length - 1]}@karmelinfotech.com`;
     }
-    return `${parts[0]}@syncroweb.in`;
+    return `${parts[0]}@karmelinfotech.com`;
   };
 
   const generateTempPassword = () => {

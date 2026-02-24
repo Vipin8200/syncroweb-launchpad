@@ -26,7 +26,6 @@ import AdminTasks from "./pages/erp/AdminTasks";
 import AdminInternshipPrograms from "./pages/erp/AdminInternshipPrograms";
 import AdminJobPostings from "./pages/erp/AdminJobPostings";
 import AdminApplications from "./pages/erp/AdminApplications";
-import AdminMessages from "./pages/erp/AdminMessages";
 import AdminInternshipEnquiries from "./pages/erp/AdminInternshipEnquiries";
 import AdminProfile from "./pages/erp/AdminProfile";
 import EmployeeDashboard from "./pages/erp/EmployeeDashboard";
@@ -36,13 +35,14 @@ import EmployeeTasks from "./pages/erp/EmployeeTasks";
 import InternDashboard from "./pages/erp/InternDashboard";
 import InternTasks from "./pages/erp/InternTasks";
 import InternProfile from "./pages/erp/InternProfile";
+import InternDailyProgress from "./pages/erp/InternDailyProgress";
 import Notifications from "./pages/erp/Notifications";
 import TeamChat from "./pages/erp/TeamChat";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider defaultTheme="light" storageKey="syncroweb-theme">
+  <ThemeProvider defaultTheme="light" storageKey="karmelinfotech-theme">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -72,7 +72,6 @@ const App = () => (
               <Route path="/erp/admin/internship-programs" element={<AdminInternshipPrograms />} />
               <Route path="/erp/admin/jobs" element={<AdminJobPostings />} />
               <Route path="/erp/admin/applications" element={<AdminApplications />} />
-              <Route path="/erp/admin/messages" element={<AdminMessages />} />
               <Route path="/erp/admin/internship-enquiries" element={<AdminInternshipEnquiries />} />
               <Route path="/erp/admin/notifications" element={<Notifications />} />
               <Route path="/erp/admin/chat" element={<TeamChat />} />
@@ -88,6 +87,7 @@ const App = () => (
               {/* Intern ERP Routes */}
               <Route path="/erp/intern/dashboard" element={<InternDashboard />} />
               <Route path="/erp/intern/tasks" element={<InternTasks />} />
+              <Route path="/erp/intern/daily-progress" element={<InternDailyProgress />} />
               <Route path="/erp/intern/profile" element={<InternProfile />} />
               <Route path="/erp/intern/notifications" element={<Notifications />} />
               <Route path="/erp/intern/chat" element={<TeamChat />} />

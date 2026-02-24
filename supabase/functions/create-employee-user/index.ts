@@ -130,13 +130,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Employee record updated successfully");
 
-    // Send email
+    // Send email to personal email
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (RESEND_API_KEY && personalEmail) {
       try {
         const subject = isPasswordReset 
-          ? "Password Reset - SyncroWeb Technologies" 
-          : "Welcome to SyncroWeb Technologies - Employee Account Details";
+          ? "Password Reset - Karmel Infotech" 
+          : "Welcome to Karmel Infotech - Employee Account Details";
         
         const htmlContent = isPasswordReset 
           ? `
@@ -149,13 +149,13 @@ const handler = async (req: Request): Promise<Response> => {
                 <p><strong>Company Email:</strong> ${companyEmail}</p>
                 <p><strong>New Temporary Password:</strong> ${tempPassword}</p>
               </div>
-              <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password immediately.</p>
-              <p>Best regards,<br>SyncroWeb Technologies Team</p>
+              <p>Please login and change your password immediately.</p>
+              <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
             </div>
           `
           : `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4F46E5;">Welcome to SyncroWeb Technologies!</h1>
+              <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
               <p>Dear ${fullName},</p>
               <p>Your employee account has been created. Welcome to the team!</p>
               <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -165,8 +165,8 @@ const handler = async (req: Request): Promise<Response> => {
                 <p><strong>Department:</strong> ${department}</p>
                 <p><strong>Position:</strong> ${position}</p>
               </div>
-              <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a> and change your password after your first login.</p>
-              <p>Best regards,<br>SyncroWeb Technologies Team</p>
+              <p>Please login and change your password after your first login.</p>
+              <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
             </div>
           `;
 
@@ -177,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <noreply@syncroweb.in>",
+            from: "Karmel Infotech <noreply@karmelinfotech.com>",
             to: [personalEmail],
             subject,
             html: htmlContent,
@@ -185,7 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         const emailData = await emailResponse.json();
-        console.log("Email sent:", emailData);
+        console.log("Email sent to personal email:", emailData);
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }

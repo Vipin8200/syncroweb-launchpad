@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email with new password
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY) {
+    if (RESEND_API_KEY && intern.personal_email) {
       try {
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -93,9 +93,9 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "SyncroWeb <noreply@syncroweb.in>",
+            from: "Karmel Infotech <noreply@karmelinfotech.com>",
             to: [intern.personal_email],
-            subject: "Password Reset - SyncroWeb Technologies",
+            subject: "Password Reset - Karmel Infotech",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h1 style="color: #4F46E5;">Password Reset</h1>
@@ -107,8 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <p><strong>New Password:</strong> ${passwordToSet}</p>
                 </div>
                 <p style="color: #dc2626;"><strong>Important:</strong> You will be required to change this password after logging in.</p>
-                <p>Please login at <a href="https://syncroweb.netlify.app/admin">https://syncroweb.netlify.app/admin</a>.</p>
-                <p>Best regards,<br>SyncroWeb Technologies Team</p>
+                <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
               </div>
             `,
           }),

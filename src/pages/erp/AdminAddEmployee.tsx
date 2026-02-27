@@ -21,14 +21,15 @@ const generatePassword = () => {
   return password;
 };
 
-// Generate company email from name
+// Generate company email from name with unique suffix
 const generateCompanyEmail = (name: string) => {
   const cleanName = name.toLowerCase().replace(/[^a-z\s]/g, "").trim();
   const parts = cleanName.split(/\s+/);
+  const suffix = Math.floor(Math.random() * 900 + 100); // 3-digit random number
   if (parts.length >= 2) {
-    return `${parts[0]}.${parts[parts.length - 1]}@karmelinfotech.com`;
+    return `${parts[0]}.${parts[parts.length - 1]}${suffix}@karmelinfotech.com`;
   }
-  return `${parts[0]}@karmelinfotech.com`;
+  return `${parts[0]}${suffix}@karmelinfotech.com`;
 };
 
 const departments = [

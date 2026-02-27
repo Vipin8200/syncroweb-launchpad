@@ -31,6 +31,7 @@ const AdminApprovals = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIntern, setSelectedIntern] = useState<Intern | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+  const [approvedCredentials, setApprovedCredentials] = useState<{ email: string; password: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchPendingInterns();
@@ -56,10 +57,11 @@ const AdminApprovals = () => {
   const generateCompanyEmail = (name: string) => {
     const cleanName = name.toLowerCase().replace(/[^a-z\s]/g, "").trim();
     const parts = cleanName.split(" ");
+    const suffix = Math.floor(Math.random() * 900 + 100);
     if (parts.length >= 2) {
-      return `${parts[0]}.${parts[parts.length - 1]}@karmelinfotech.com`;
+      return `${parts[0]}.${parts[parts.length - 1]}${suffix}@karmelinfotech.com`;
     }
-    return `${parts[0]}@karmelinfotech.com`;
+    return `${parts[0]}${suffix}@karmelinfotech.com`;
   };
 
   const generateTempPassword = () => {
@@ -114,9 +116,12 @@ const AdminApprovals = () => {
 
       toast({
         title: "Intern Approved",
-        description: `${intern.full_name} has been approved. Credentials: ${companyEmail}`,
+        description: `${intern.full_name} approved. Email: ${companyEmail} | Temp Password: ${tempPassword}`,
+        duration: 30000,
       });
 
+      // Store credentials for display in dialog
+      setApprovedCredentials({ email: companyEmail, password: tempPassword, name: intern.full_name });
       setSelectedIntern(null);
       fetchPendingInterns();
     } catch (error: any) {
@@ -291,8 +296,44 @@ const AdminApprovals = () => {
               </Button>
             </DialogFooter>
           </DialogContent>
+      </Dialog>
+
+        {/* Credentials Display Dialog */}
+        <Dialog open={!!approvedCredentials} onOpenChange={() => setApprovedCredentials(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>✅ Intern Approved - Credentials</DialogTitle>
+            </DialogHeader>
+            {approvedCredentials && (
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  <strong>{approvedCredentials.name}</strong> has been approved. Below are their login credentials.
+                  An email has been sent to their personal email. Copy these as a backup:
+                </p>
+                <div className="bg-secondary p-4 rounded-lg space-y-2 font-mono text-sm">
+                  <p><strong>Company Email:</strong> {approvedCredentials.email}</p>
+                  <p><strong>Temporary Password:</strong> {approvedCredentials.password}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`Email: ${approvedCredentials.email}\nPassword: ${approvedCredentials.password}`);
+                      toast({ title: "Copied!", description: "Credentials copied to clipboard" });
+                    }}
+                  >
+                    Copy Credentials
+                  </Button>
+                  <Button className="flex-1" onClick={() => setApprovedCredentials(null)}>
+                    Done
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
         </Dialog>
-      </div>
+    </div>
     </ERPLayout>
   );
 };

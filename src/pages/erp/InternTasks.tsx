@@ -36,7 +36,8 @@ const InternTasks = () => {
         .from("tasks")
         .select("*")
         .eq("assigned_to", internData.id)
-        .order("created_at", { ascending: false });
+        .order("priority", { ascending: false })
+        .order("due_date", { ascending: true });
       if (error) throw error;
       return data;
     },

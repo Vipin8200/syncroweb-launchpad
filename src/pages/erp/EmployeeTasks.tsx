@@ -37,8 +37,24 @@ const EmployeeTasks = () => {
     },
   });
 
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ["employee-tasks"],
+  // Fetch employee record for current user
+  const { data: employeeRecord } = useQuery({
+    queryKey: ["current-employee-record"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+      const { data } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", userData.user.id)
+        .single();
+      return data;
+    },
+  });
+
+  // Tasks created by this employee (assigned to interns)
+  const { data: createdTasks, isLoading: isLoadingCreated } = useQuery({
+    queryKey: ["employee-created-tasks"],
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
@@ -47,11 +63,32 @@ const EmployeeTasks = () => {
         .from("tasks")
         .select("*, interns(full_name)")
         .eq("assigned_by", userData.user.id)
-        .order("created_at", { ascending: false });
+        .order("priority", { ascending: false })
+        .order("due_date", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Tasks assigned TO this employee
+  const { data: myTasks, isLoading: isLoadingMy } = useQuery({
+    queryKey: ["employee-my-tasks", employeeRecord?.id],
+    queryFn: async () => {
+      if (!employeeRecord?.id) return [];
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("assigned_to_employee", employeeRecord.id)
+        .order("priority", { ascending: false })
+        .order("due_date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employeeRecord?.id,
+  });
+
+  const isLoading = isLoadingCreated || isLoadingMy;
+  const tasks = createdTasks;
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -217,6 +254,55 @@ const EmployeeTasks = () => {
           </Dialog>
         </div>
 
+        {/* Tasks Assigned TO Me */}
+        {myTasks && myTasks.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Tasks Assigned to Me</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {myTasks.map((task) => (
+                <Card key={task.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-base line-clamp-2">{task.title}</CardTitle>
+                      {getPriorityBadge(task.priority)}
+                    </div>
+                    {getStatusBadge(task.status)}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {task.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
+                    )}
+                    {task.due_date && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>Due: {format(new Date(task.due_date), "PPP")}</span>
+                      </div>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {task.status === "pending" && (
+                        <Button size="sm" onClick={async () => {
+                          await supabase.from("tasks").update({ status: "in_progress" }).eq("id", task.id);
+                          queryClient.invalidateQueries({ queryKey: ["employee-my-tasks"] });
+                          toast.success("Task started!");
+                        }}>Start Task</Button>
+                      )}
+                      {task.status === "in_progress" && (
+                        <Button size="sm" onClick={async () => {
+                          await supabase.from("tasks").update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", task.id);
+                          queryClient.invalidateQueries({ queryKey: ["employee-my-tasks"] });
+                          toast.success("Task completed!");
+                        }}>Mark Complete</Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tasks Created by Me (assigned to interns) */}
+        <h2 className="text-lg font-semibold">Tasks I Assigned</h2>
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

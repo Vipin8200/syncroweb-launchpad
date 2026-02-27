@@ -55,6 +55,7 @@ const employeeNav: NavItem[] = [
 const internNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/erp/intern/dashboard" },
   { label: "My Tasks", icon: CheckSquare, path: "/erp/intern/tasks" },
+  { label: "Daily Progress", icon: ClipboardList, path: "/erp/intern/daily-progress" },
   { label: "Team Chat", icon: MessageCircle, path: "/erp/intern/chat" },
   { label: "Profile", icon: Settings, path: "/erp/intern/profile" },
 ];

@@ -196,6 +196,50 @@ export type Database = {
         }
         Relationships: []
       }
+      intern_daily_progress: {
+        Row: {
+          created_at: string
+          id: string
+          intern_id: string
+          progress_date: string
+          section_worked: string
+          status: string
+          updated_at: string
+          user_id: string
+          work_done: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intern_id: string
+          progress_date?: string
+          section_worked: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          work_done: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intern_id?: string
+          progress_date?: string
+          section_worked?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          work_done?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intern_daily_progress_intern_id_fkey"
+            columns: ["intern_id"]
+            isOneToOne: false
+            referencedRelation: "interns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interns: {
         Row: {
           added_by: string

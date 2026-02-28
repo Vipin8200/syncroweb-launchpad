@@ -33,45 +33,54 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Creating user for intern: ${fullName} (${companyEmail})`);
 
-    // Check if user already exists by email
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
-      (u) => u.email === companyEmail
-    );
-
     let userId: string;
 
-    if (existingUser) {
-      console.log(`User already exists with email ${companyEmail}, updating intern record`);
-      userId = existingUser.id;
+    // Try to create the user directly - much faster than listing all users
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: companyEmail,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
 
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        userId,
-        { password: tempPassword }
-      );
-      
-      if (updateError) {
-        console.error("Error updating user password:", updateError);
-      }
-    } else {
-      const { data: authData, error: authError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: companyEmail,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: {
-            full_name: fullName,
-          },
-        });
+    if (authError) {
+      if (authError.message?.includes("already been registered") || authError.message?.includes("already exists")) {
+        console.log(`User already exists with email ${companyEmail}, looking up...`);
+        
+        const { data: existingIntern } = await supabaseAdmin
+          .from("interns")
+          .select("user_id")
+          .eq("company_email", companyEmail)
+          .maybeSingle();
 
-      if (authError) {
+        if (existingIntern?.user_id) {
+          userId = existingIntern.user_id;
+        } else {
+          const { data: profileData } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("email", companyEmail)
+            .maybeSingle();
+          
+          if (profileData?.id) {
+            userId = profileData.id;
+          } else {
+            throw new Error(`User exists but could not find their ID for ${companyEmail}`);
+          }
+        }
+
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+          userId,
+          { password: tempPassword }
+        );
+        if (updateError) {
+          console.error("Error updating user password:", updateError);
+        }
+      } else {
         throw new Error(`Failed to create auth user: ${authError.message}`);
       }
-
-      if (!authData.user) {
-        throw new Error("No user returned from createUser");
-      }
-
+    } else {
+      if (!authData.user) throw new Error("No user returned from createUser");
       userId = authData.user.id;
       console.log(`Created new user with ID: ${userId}`);
     }
@@ -87,10 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!existingRole) {
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
-        .insert({
-          user_id: userId,
-          role: "intern",
-        });
+        .insert({ user_id: userId, role: "intern" });
 
       if (roleError) {
         console.error("Error adding role:", roleError);
@@ -122,8 +128,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Intern record updated successfully");
 
-    // Send welcome email to personal email
+    // Send welcome email using Resend default sender (works without domain verification)
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    let emailSent = false;
+    
     if (RESEND_API_KEY && personalEmail) {
       try {
         const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -133,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "Karmel Infotech <noreply@karmelinfotech.com>",
+            from: "Karmel Infotech <onboarding@resend.dev>",
             to: [personalEmail],
             subject: "Welcome to Karmel Infotech - Your Account Details",
             html: `
@@ -155,20 +163,23 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         const emailData = await emailResponse.json();
-        console.log("Email sent:", JSON.stringify(emailData));
+        console.log("Email response:", JSON.stringify(emailData));
         
-        if (!emailResponse.ok) {
-          console.error("Email API error:", emailData);
+        if (emailResponse.ok) {
+          emailSent = true;
+          console.log("Email sent successfully!");
+        } else {
+          console.error("Email API error:", JSON.stringify(emailData));
         }
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }
     } else {
-      console.log("Skipping email: RESEND_API_KEY=" + (!!RESEND_API_KEY) + ", personalEmail=" + personalEmail);
+      console.log("No RESEND_API_KEY or personalEmail, skipping email");
     }
 
     return new Response(
-      JSON.stringify({ success: true, userId, companyEmail, tempPassword }),
+      JSON.stringify({ success: true, userId, companyEmail, tempPassword, emailSent }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

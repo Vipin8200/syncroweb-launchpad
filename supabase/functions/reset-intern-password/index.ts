@@ -83,42 +83,26 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error updating intern record:", updateError);
     }
 
-    // Send email with new password
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY && intern.personal_email) {
-      try {
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Karmel Infotech <noreply@karmelinfotech.com>",
-            to: [intern.personal_email],
-            subject: "Password Reset - Karmel Infotech",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #4F46E5;">Password Reset</h1>
-                <p>Dear ${intern.full_name},</p>
-                <p>Your password has been reset by an administrator. Please use the credentials below to login.</p>
-                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0;">Your New Login Credentials</h3>
-                  <p><strong>Email:</strong> ${intern.company_email}</p>
-                  <p><strong>New Password:</strong> ${passwordToSet}</p>
-                </div>
-                <p style="color: #dc2626;"><strong>Important:</strong> You will be required to change this password after logging in.</p>
-                <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
-              </div>
-            `,
-          }),
-        });
-
-        const emailData = await emailResponse.json();
-        console.log("Password reset email sent:", emailData);
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
-      }
+    // Send email with new password via Gmail SMTP
+    if (intern.personal_email) {
+      await sendEmail({
+        to: intern.personal_email,
+        subject: "Password Reset - Karmel Infotech",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4F46E5;">Password Reset</h1>
+            <p>Dear ${intern.full_name},</p>
+            <p>Your password has been reset by an administrator. Please use the credentials below to login.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Your New Login Credentials</h3>
+              <p><strong>Email:</strong> ${intern.company_email}</p>
+              <p><strong>New Password:</strong> ${passwordToSet}</p>
+            </div>
+            <p style="color: #dc2626;"><strong>Important:</strong> You will be required to change this password after logging in.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+          </div>
+        `,
+      });
     }
 
     return new Response(

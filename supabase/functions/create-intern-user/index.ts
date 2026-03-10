@@ -129,54 +129,31 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Intern record updated successfully");
 
-    // Send welcome email using Resend default sender (works without domain verification)
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    // Send welcome email via Gmail SMTP
     let emailSent = false;
     
-    if (RESEND_API_KEY && personalEmail) {
-      try {
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Karmel Infotech <onboarding@resend.dev>",
-            to: [personalEmail],
-            subject: "Welcome to Karmel Infotech - Your Account Details",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
-                <p>Dear ${fullName},</p>
-                <p>Congratulations! Your internship application has been approved. We're excited to have you join our team.</p>
-                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0;">Your Login Credentials</h3>
-                  <p><strong>Company Email:</strong> ${companyEmail}</p>
-                  <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-                  <p><strong>Domain:</strong> ${domain}</p>
-                </div>
-                <p>Please login and change your password after your first login.</p>
-                <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
-              </div>
-            `,
-          }),
-        });
-
-        const emailData = await emailResponse.json();
-        console.log("Email response:", JSON.stringify(emailData));
-        
-        if (emailResponse.ok) {
-          emailSent = true;
-          console.log("Email sent successfully!");
-        } else {
-          console.error("Email API error:", JSON.stringify(emailData));
-        }
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
-      }
+    if (personalEmail) {
+      emailSent = await sendEmail({
+        to: personalEmail,
+        subject: "Welcome to Karmel Infotech - Your Account Details",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
+            <p>Dear ${fullName},</p>
+            <p>Congratulations! Your internship application has been approved. We're excited to have you join our team.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Your Login Credentials</h3>
+              <p><strong>Company Email:</strong> ${companyEmail}</p>
+              <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+              <p><strong>Domain:</strong> ${domain}</p>
+            </div>
+            <p>Please login and change your password after your first login.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+          </div>
+        `,
+      });
     } else {
-      console.log("No RESEND_API_KEY or personalEmail, skipping email");
+      console.log("No personalEmail provided, skipping email");
     }
 
     return new Response(

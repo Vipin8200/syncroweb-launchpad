@@ -145,77 +145,49 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Employee record updated successfully");
 
-    // Send email to personal email using Resend
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    // Send email via Gmail SMTP
     let emailSent = false;
     
-    if (RESEND_API_KEY && personalEmail) {
-      try {
-        const subject = isPasswordReset 
-          ? "Password Reset - Karmel Infotech" 
-          : "Welcome to Karmel Infotech - Employee Account Details";
-        
-        const htmlContent = isPasswordReset 
-          ? `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4F46E5;">Password Reset</h1>
-              <p>Dear ${fullName},</p>
-              <p>Your password has been reset by an administrator.</p>
-              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">New Login Credentials</h3>
-                <p><strong>Company Email:</strong> ${companyEmail}</p>
-                <p><strong>New Temporary Password:</strong> ${tempPassword}</p>
-              </div>
-              <p>Please login and change your password immediately.</p>
-              <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+    if (personalEmail) {
+      const subject = isPasswordReset 
+        ? "Password Reset - Karmel Infotech" 
+        : "Welcome to Karmel Infotech - Employee Account Details";
+      
+      const htmlContent = isPasswordReset 
+        ? `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4F46E5;">Password Reset</h1>
+            <p>Dear ${fullName},</p>
+            <p>Your password has been reset by an administrator.</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">New Login Credentials</h3>
+              <p><strong>Company Email:</strong> ${companyEmail}</p>
+              <p><strong>New Temporary Password:</strong> ${tempPassword}</p>
             </div>
-          `
-          : `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
-              <p>Dear ${fullName},</p>
-              <p>Your employee account has been created. Welcome to the team!</p>
-              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">Your Login Credentials</h3>
-                <p><strong>Company Email:</strong> ${companyEmail}</p>
-                <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-                <p><strong>Department:</strong> ${department}</p>
-                <p><strong>Position:</strong> ${position}</p>
-              </div>
-              <p>Please login and change your password after your first login.</p>
-              <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+            <p>Please login and change your password immediately.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+          </div>
+        `
+        : `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #4F46E5;">Welcome to Karmel Infotech!</h1>
+            <p>Dear ${fullName},</p>
+            <p>Your employee account has been created. Welcome to the team!</p>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Your Login Credentials</h3>
+              <p><strong>Company Email:</strong> ${companyEmail}</p>
+              <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+              <p><strong>Department:</strong> ${department}</p>
+              <p><strong>Position:</strong> ${position}</p>
             </div>
-          `;
+            <p>Please login and change your password after your first login.</p>
+            <p>Best regards,<br>Karmel Infotech & Software Solution LLP</p>
+          </div>
+        `;
 
-        // Use onboarding@resend.dev as sender (works without domain verification)
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Karmel Infotech <onboarding@resend.dev>",
-            to: [personalEmail],
-            subject,
-            html: htmlContent,
-          }),
-        });
-
-        const emailData = await emailResponse.json();
-        console.log("Email response:", JSON.stringify(emailData));
-        
-        if (emailResponse.ok) {
-          emailSent = true;
-          console.log("Email sent successfully!");
-        } else {
-          console.error("Email API error:", JSON.stringify(emailData));
-        }
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
-      }
+      emailSent = await sendEmail({ to: personalEmail, subject, html: htmlContent });
     } else {
-      console.log("No RESEND_API_KEY or personalEmail, skipping email");
+      console.log("No personalEmail provided, skipping email");
     }
 
     return new Response(

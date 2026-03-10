@@ -38,6 +38,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'TOKEN_REFRESHED' && !session) {
+        // Token refresh failed - clear stale session
+        console.log('Token refresh failed, clearing session');
+        setSession(null);
+        setUserRole(null);
+        setUserName("");
+        setIsLoading(false);
+        return;
+      }
+
+      if (_event === 'SIGNED_OUT') {
+        setSession(null);
+        setUserRole(null);
+        setUserName("");
+        setIsLoading(false);
+        return;
+      }
+
       setSession(session);
 
       if (session?.user) {
@@ -54,7 +72,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     // THEN check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session retrieval error:', error);
+        // Clear any stale session data
+        supabase.auth.signOut();
+        setSession(null);
+        setUserRole(null);
+        setUserName("");
+        setIsLoading(false);
+        return;
+      }
+      
       setSession(session);
       if (session?.user) {
         setIsLoading(true);
